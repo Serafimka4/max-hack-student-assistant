@@ -1,4 +1,15 @@
 # syntax=docker/dockerfile:1
+
+# Сборка CSS/JS мини-приложения (Tailwind + Vite)
+FROM node:22-alpine AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY vite.config.js ./
+COPY resources ./resources
+COPY app/Livewire ./app/Livewire
+RUN npm run build
+
 FROM dunglas/frankenphp:1-php8.5-bookworm
 
 RUN install-php-extensions pdo_pgsql intl zip bcmath gd opcache pcntl @composer
@@ -18,6 +29,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
 
 COPY . .
+COPY --from=assets /app/public/build ./public/build
 RUN composer dump-autoload --optimize --no-dev \
     && php artisan package:discover --ansi \
     && php artisan filament:assets \

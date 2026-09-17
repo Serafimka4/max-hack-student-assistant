@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
@@ -40,6 +42,24 @@ class User extends Authenticatable implements FilamentUser, HasTenants
             ->using(Membership::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    /** @return HasOne<Student, $this> */
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    /** @return HasMany<InternshipApplication, $this> */
+    public function applications(): HasMany
+    {
+        return $this->hasMany(InternshipApplication::class);
+    }
+
+    /** @return HasMany<Ticket, $this> */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
     }
 
     public function roleIn(Organization $organization): ?MemberRole

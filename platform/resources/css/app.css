@@ -1,9 +1,134 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/unbounded';
+@import '@fontsource-variable/manrope';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+@source '../views';
+@source '../../app/Livewire';
+/* Цвет карточки собирается из OfferDirection::accent() */
+@source inline('bg-lime bg-blue bg-coral');
 
+/* Палитра и типографика макета «Цифровая школа» */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Unbounded Variable', 'Arial Black', sans-serif;
+
+    --color-ink: #0b0d10;
+    --color-ink-2: #15181d;
+    --color-ink-3: #1f232a;
+    --color-ink-line: #2a2f37;
+    --color-paper: #f2f5f8;
+    --color-line: #e2e7ed;
+    --color-muted: #69707b;
+    --color-muted-dark: #9aa1ab;
+
+    --color-lime: #c5f25a;
+    --color-lime-deep: #a9d93a;
+    --color-blue: #5b83f2;
+    --color-coral: #ef8261;
+    --color-danger: #e5484d;
+
+    --radius-card: 22px;
+    --text-2xs: 11.5px;
+
+    --animate-rise: rise 0.22s ease;
+    --animate-fade: fade 0.18s ease;
+
+    @keyframes rise {
+        from { transform: translateY(40px); opacity: 0; }
+    }
+    @keyframes fade {
+        from { opacity: 0; }
+    }
+}
+
+@layer base {
+    html { -webkit-tap-highlight-color: transparent; }
+    body { @apply bg-[#d9dde2] font-sans text-[15px] leading-[1.45] text-ink antialiased; }
+    :focus-visible { @apply outline-2 outline-offset-2 outline-blue; }
+    [x-cloak] { display: none !important; }
+}
+
+/* Повторяющиеся элементы интерфейса (утилиты, чтобы работали варианты и @apply) */
+
+@utility heading {
+    @apply font-display font-extrabold uppercase leading-[1.02] tracking-[-0.02em];
+}
+
+@utility eyebrow {
+    @apply font-display text-[10px] font-semibold uppercase tracking-[0.06em];
+}
+
+@utility btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-[18px] text-sm font-bold
+            transition active:scale-[.98] disabled:pointer-events-none disabled:opacity-45;
+}
+
+@utility btn-lime {
+    @apply btn bg-lime text-ink hover:bg-lime-deep;
+}
+
+@utility btn-ink {
+    @apply btn bg-ink text-white;
+}
+
+@utility btn-ghost {
+    @apply btn border border-line bg-white;
+}
+
+@utility btn-ghost-dark {
+    @apply btn border border-ink-line text-white;
+}
+
+@utility badge {
+    @apply inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 font-display text-[9.5px]
+            font-semibold uppercase tracking-[0.05em];
+}
+
+@utility dot {
+    @apply size-1.5 rounded-full bg-current;
+}
+
+@utility card {
+    @apply rounded-card border border-line bg-white p-4;
+}
+
+@utility card-dark {
+    @apply rounded-card border border-ink-line bg-ink-2 text-white;
+}
+
+@utility pressable {
+    @apply block w-full text-left transition active:scale-[.985];
+}
+
+@utility chip {
+    @apply h-[34px] flex-none whitespace-nowrap rounded-full border border-line bg-white px-3.5 text-[13px] font-semibold;
+}
+
+@utility chip-active {
+    @apply border-ink bg-ink text-white;
+}
+
+@utility icon-btn {
+    @apply grid size-10 place-items-center rounded-xl;
+}
+
+@utility link {
+    @apply inline-flex items-center gap-1 text-[13px] font-bold;
+}
+
+@utility meter {
+    @apply h-2 overflow-hidden rounded-full bg-ink-3;
+}
+
+@utility meter-hatched {
+    background: repeating-linear-gradient(-45deg, var(--color-ink-3) 0 6px, var(--color-ink-line) 6px 8px);
+}
+
+@utility no-scrollbar {
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
 }

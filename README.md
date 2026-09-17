@@ -2,14 +2,13 @@
 
 Мини-приложение MAX и платформа для вузов и работодателей: практики и заявки, тесты навыков, шаблоны документов, обращения. План проекта — [PLAN.md](PLAN.md).
 
-> Статус: каркас. Готовы API, админ-панель организаций (шаблоны, тесты) и вход через MAX на уровне API. Мини-приложение на Livewire ещё не перенесено из прототипа `web/`.
+> Статус: MVP в разработке. Готовы мини-приложение (главная, расписание, практики и заявки, помощь), вход через MAX, API и админ-панель для шаблонов и тестов. Прохождение тестов и экраны координатора — следующие шаги.
 
 ## Структура
 
 | Каталог | Назначение |
 |---|---|
-| `platform/` | Laravel 13: API `/api/v1`, админ-панель `/admin` (Filament 5), будущее мини-приложение (Livewire 4) |
-| `web/` | Кликабельный дизайн-прототип мини-приложения (React + Vite), только для справки |
+| `platform/` | Laravel 13: мини-приложение `/app` (Livewire 4 + Tailwind 4), API `/api/v1`, админ-панель `/admin` (Filament 5) |
 | `compose.yaml` | Запуск всех компонентов: приложение, очередь, планировщик, PostgreSQL |
 
 ## Запуск
@@ -21,6 +20,7 @@ docker compose up -d --build
 
 | Адрес | Что это |
 |---|---|
+| http://localhost:8088/app | Мини-приложение (в MAX открывается кнопкой бота) |
 | http://localhost:8088/admin | Админ-панель |
 | http://localhost:8088/docs/api | Документация API (OpenAPI 3.1, JSON — `/docs/api.json`) |
 | http://localhost:8088/up | Проверка работоспособности |
@@ -36,6 +36,15 @@ docker compose up -d --build
 | `admin@demo.test` | Администратор платформы, видит все организации |
 | `editor@demo.test` | Редактор «Демо-вуза»: шаблоны документов |
 | `hr@demo.test` | Администратор «Волга Софт»: тесты навыков |
+| `student@demo.test` | Студент демо-вуза (без пароля; вход кнопкой при `MINIAPP_DEMO_LOGIN=true`) |
+
+## Мини-приложение
+
+- URL для настроек бота в MAX: `https://<домен>/app/start`. Страница получает `window.WebApp.initData`, сервер проверяет подпись токеном бота (`MAX_BOT_TOKEN`) и создаёт сессию.
+- Диплинк `https://max.ru/<бот>?startapp=offer_<id>` открывает карточку предложения.
+- Доступ — только студентам вуза. На время пилота новые пользователи MAX привязываются к вузу из `MINIAPP_ENROLL_ORGANIZATION`.
+- Без MAX (локально): `MINIAPP_DEMO_LOGIN=true` и кнопка «Войти как демо-студент» на `/app/start`.
+- Если в веб-версии MAX вход падает с ошибкой cookie — см. настройки `SESSION_*` в `.env.example`.
 
 ## API
 
@@ -52,6 +61,7 @@ cd platform
 composer install
 cp .env.example .env && php artisan key:generate
 php artisan migrate --seed
+npm install && npm run build   # или npm run dev для разработки интерфейса
 php artisan serve          # http://localhost:8000
 php artisan test           # тесты (SQLite в памяти)
 ```

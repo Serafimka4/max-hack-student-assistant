@@ -14,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('app', 'app/*')
+            ? route('miniapp.start')
+            : route('filament.admin.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(fn (DomainRuleException $e, Request $request) => $request->expectsJson() || $request->is('api/*')

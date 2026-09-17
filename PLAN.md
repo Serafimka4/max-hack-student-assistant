@@ -281,7 +281,7 @@ MVP обеспечивает скачивание и инструкцию. Ав�
 |---|---|
 | Сервер, API и бот | Laravel 13 (PHP 8.4+) |
 | API для вузов и интеграций | REST `/api/v1`, токены Sanctum, API Resources, OpenAPI 3.1 из кода (Scramble) |
-| Мини-приложение | Blade + Livewire 4 + Alpine, MAX Bridge; дизайн-прототип — каталог `web/` |
+| Мини-приложение | Blade + Livewire 4 + Alpine + Tailwind 4, MAX Bridge |
 | Админ-панель | Filament 5 с кабинетом на каждую организацию (вуз или работодатель) |
 | Связь с MAX | MAX Bridge, проверка `initData` на сервере, API бота `platform-api2.max.ru`, вебхуки |
 | Очереди и уведомления | Очереди Laravel (ограничение API MAX — 30 запросов/с) |

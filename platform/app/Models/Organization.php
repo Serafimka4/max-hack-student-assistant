@@ -51,4 +51,22 @@ class Organization extends Model implements HasName
     {
         return $this->hasMany(Assessment::class);
     }
+
+    /** @return HasMany<StudyGroup, $this> */
+    public function studyGroups(): HasMany
+    {
+        return $this->hasMany(StudyGroup::class);
+    }
+
+    /** @return HasMany<FaqItem, $this> */
+    public function faqItems(): HasMany
+    {
+        return $this->hasMany(FaqItem::class);
+    }
+
+    /** @return HasMany<InternshipOffer, $this> */
+    public function internshipOffers(): HasMany
+    {
+        return $this->hasMany(InternshipOffer::class);
+    }
 }
