@@ -27,7 +27,7 @@ trait InteractsWithStudent
     }
 
     /** Выполняет действие и показывает нарушение предметного правила как сообщение. */
-    protected function attempt(Closure $action, string $success): void
+    protected function perform(Closure $action, string $success): void
     {
         try {
             $action();

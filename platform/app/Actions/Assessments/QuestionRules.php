@@ -21,8 +21,30 @@ class QuestionRules
         ];
     }
 
-    /** @return array<string, mixed> */
-    /** Организация может отсутствовать только при построении документации API: тогда доступны лишь общие навыки. */
+    /** @return array<string, mixed> практическое задание и рубрика */
+    public static function practical(?Organization $organization): array
+    {
+        return [
+            /** Текст практического задания. Пусто — без практической части. */
+            'practical_task' => ['nullable', 'string', 'max:10000'],
+            'practical_rubric' => ['nullable', 'array', 'max:20', 'required_with:practical_task'],
+            'practical_rubric.*.skill_id' => ['required', 'integer', Rule::exists(Skill::class, 'id')->where(
+                fn ($q) => $q->where(fn ($q) => $q->whereNull('organization_id')->orWhere('organization_id', $organization?->id)),
+            )],
+            'practical_rubric.*.criterion' => ['required', 'string', 'max:500'],
+            'practical_rubric.*.max_points' => ['required', 'integer', 'min:1', 'max:100'],
+            /** Порог «Прикладного» уровня по практике, %. */
+            'applied_threshold' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            /** Порог «Уверенного» уровня по практике, %. */
+            'confident_threshold' => ['sometimes', 'integer', 'min:1', 'max:100', 'gte:applied_threshold'],
+        ];
+    }
+
+    /**
+     * Организация может отсутствовать только при построении документации API: тогда доступны лишь общие навыки.
+     *
+     * @return array<string, mixed>
+     */
     public static function for(?Organization $organization, string $prefix = 'questions'): array
     {
         return [

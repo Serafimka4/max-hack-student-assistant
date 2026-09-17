@@ -45,6 +45,37 @@ class AssessmentApiTest extends ApiTestCase
         $this->getJson($this->url("/assessments/{$id}"))->assertJsonPath('data.published_version.version', 1);
     }
 
+    public function test_scoring_rules_and_practical_part_are_saved(): void
+    {
+        $this->actingAsMember();
+        $skill = $this->skill();
+        $id = $this->createAssessment();
+
+        $versionId = $this->postJson($this->url("/assessments/{$id}/versions"), [
+            'questions' => [$this->question($skill)],
+            'basic_threshold' => 75,
+        ])->assertCreated()->assertJsonPath('data.basic_threshold', 75)->json('data.id');
+
+        $this->putJson($this->url("/assessments/{$id}/versions/{$versionId}"), [
+            'questions' => [$this->question($skill)],
+            'min_questions_per_skill' => 1,
+            'applied_threshold' => 65,
+            'confident_threshold' => 85,
+            'practical_task' => 'Сделайте страницу',
+            'practical_rubric' => [['skill_id' => $skill->id, 'criterion' => 'Работает', 'max_points' => 3]],
+        ])->assertOk()
+            ->assertJsonPath('data.basic_threshold', 75)
+            ->assertJsonPath('data.min_questions_per_skill', 1)
+            ->assertJsonPath('data.applied_threshold', 65)
+            ->assertJsonPath('data.practical_rubric.0.max_points', 3);
+
+        $this->putJson($this->url("/assessments/{$id}/versions/{$versionId}"), [
+            'questions' => [$this->question($skill)],
+            'applied_threshold' => 90,
+            'confident_threshold' => 80,
+        ])->assertUnprocessable()->assertJsonValidationErrors('confident_threshold');
+    }
+
     public function test_answer_keys_are_hidden_from_non_editors(): void
     {
         $this->actingAsMember();

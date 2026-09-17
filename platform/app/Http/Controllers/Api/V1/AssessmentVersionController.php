@@ -37,8 +37,10 @@ class AssessmentVersionController extends Controller
         Gate::authorize('update', $assessment);
 
         $version = $create($assessment, $request->validated('questions'), $request->validated('notes'));
-        if ($scoring = $request->safe()->only(['basic_threshold', 'min_questions_per_skill'])) {
-            $version->update($scoring);
+        if ($scoring = $this->scoring($request)) {
+            $version = app(SaveVersionQuestions::class)($version, $version->questions->map->only(
+                ['skill_id', 'type', 'prompt', 'code', 'options', 'correct_keys', 'points'],
+            )->all(), null, $scoring);
         }
 
         return AssessmentVersionResource::make($version->load('questions.version.assessment'));
@@ -61,9 +63,17 @@ class AssessmentVersionController extends Controller
     {
         Gate::authorize('update', $assessment);
 
-        $version = $save($version, $request->validated('questions'), $request->validated('notes'), $request->safe()->only(['basic_threshold', 'min_questions_per_skill']));
+        $version = $save($version, $request->validated('questions'), $request->validated('notes'), $this->scoring($request));
 
         return AssessmentVersionResource::make($version->load('questions.version.assessment'));
+    }
+
+    /** @return array<string, mixed> */
+    private function scoring(AssessmentVersionRequest $request): array
+    {
+        return $request->safe()->only([
+            'basic_threshold', 'min_questions_per_skill', 'applied_threshold', 'confident_threshold', 'practical_task', 'practical_rubric',
+        ]);
     }
 
     /** Опубликовать версию. После публикации версия неизменяема. */

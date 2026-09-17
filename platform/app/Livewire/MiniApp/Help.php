@@ -38,7 +38,7 @@ class Help extends Component
     public function confirm(int $ticketId, ConfirmTicketResolution $confirm): void
     {
         $ticket = $this->user()->tickets()->findOrFail($ticketId);
-        $this->attempt(fn () => $confirm($ticket, $this->user()), 'Спасибо! Решение подтверждено');
+        $this->perform(fn () => $confirm($ticket, $this->user()), 'Спасибо! Решение подтверждено');
     }
 
     #[On('ticket-created')]

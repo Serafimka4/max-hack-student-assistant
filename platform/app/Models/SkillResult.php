@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'skill_id', 'points', 'max_points', 'questions_count', 'level', 'outcome'])]
+#[Fillable(['user_id', 'skill_id', 'points', 'max_points', 'questions_count', 'level', 'outcome', 'practical_points', 'practical_max_points'])]
 class SkillResult extends Model
 {
     protected function casts(): array
@@ -29,6 +29,11 @@ class SkillResult extends Model
     public function attempt(): BelongsTo
     {
         return $this->belongsTo(AssessmentAttempt::class, 'assessment_attempt_id');
+    }
+
+    public function practicalPercent(): ?int
+    {
+        return $this->practical_max_points ? (int) round($this->practical_points / $this->practical_max_points * 100) : null;
     }
 
     public function percent(): int

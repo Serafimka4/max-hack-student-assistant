@@ -33,6 +33,9 @@
         <div class="card flex flex-col gap-2.5 text-sm">
             <div class="flex gap-2.5"><x-miniapp.icon name="check" :size="18" class="mt-px" /><span>Вопрос засчитывается, если выбраны все правильные варианты и нет лишних.</span></div>
             <div class="flex gap-2.5"><x-miniapp.icon name="target" :size="18" class="mt-px" /><span>Базовый уровень — от {{ $version->basic_threshold }}% по навыку; нужно не меньше {{ $version->min_questions_per_skill }} вопросов на навык.</span></div>
+            @if ($version->hasPractical())
+                <div class="flex gap-2.5"><x-miniapp.icon name="file" :size="18" class="mt-px" /><span>После вопросов — практическое задание. Его проверяет специалист по рубрике; только оно даёт «Прикладной» уровень (от {{ $version->applied_threshold }}%) и грейд «Junior».</span></div>
+            @endif
             <div class="flex gap-2.5"><x-miniapp.icon name="clock" :size="18" class="mt-px" /><span>Ответы сохраняются сразу — можно прерваться и продолжить.@if ($assessment->duration_minutes) По истечении времени попытка завершится с сохранёнными ответами.@endif</span></div>
             <div class="flex gap-2.5"><x-miniapp.icon name="alert" :size="18" class="mt-px" /><span>Повторная попытка — через {{ $assessment->retake_after_days }} дн. Прохождение без наблюдателя: результат предварительный.</span></div>
         </div>

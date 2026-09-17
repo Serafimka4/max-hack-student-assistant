@@ -21,6 +21,12 @@ enum MemberRole: string implements HasLabel
         };
     }
 
+    /** Может проверять практические задания по тестам организации. */
+    public function canReview(): bool
+    {
+        return in_array($this, [self::Admin, self::Reviewer], true);
+    }
+
     /** Может создавать и менять тесты и шаблоны организации. */
     public function canManageContent(): bool
     {

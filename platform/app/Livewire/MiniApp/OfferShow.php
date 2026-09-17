@@ -35,13 +35,13 @@ class OfferShow extends Component
 
     public function apply(SubmitApplication $submit): void
     {
-        $this->attempt(fn () => $submit($this->offer(), $this->user(), $this->shareResults), 'Заявка подана — статус в разделе «Заявки»');
+        $this->perform(fn () => $submit($this->offer(), $this->user(), $this->shareResults), 'Заявка подана — статус в разделе «Заявки»');
     }
 
     public function withdraw(WithdrawApplication $withdraw): void
     {
         $application = $this->user()->applications()->where('internship_offer_id', $this->offerId)->firstOrFail();
-        $this->attempt(fn () => $withdraw($application, $this->user()), 'Заявка отозвана');
+        $this->perform(fn () => $withdraw($application, $this->user()), 'Заявка отозвана');
     }
 
     public function render(SkillMatcher $matcher): View

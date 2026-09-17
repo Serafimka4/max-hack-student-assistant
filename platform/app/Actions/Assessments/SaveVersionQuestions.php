@@ -14,7 +14,7 @@ class SaveVersionQuestions
 {
     /**
      * @param  list<array<string, mixed>>  $questions  уже прошедшие QuestionRules
-     * @param  array{basic_threshold?: int, min_questions_per_skill?: int}  $scoring  правила оценки версии
+     * @param  array{basic_threshold?: int, min_questions_per_skill?: int, applied_threshold?: int, confident_threshold?: int, practical_task?: ?string, practical_rubric?: ?array}  $scoring  правила оценки и практическая часть
      */
     public function __invoke(AssessmentVersion $version, array $questions, ?string $notes = null, array $scoring = []): AssessmentVersion
     {
@@ -26,7 +26,7 @@ class SaveVersionQuestions
             $this->assertConsistent($question, $i + 1);
         }
 
-        return DB::transaction(function () use ($version, $questions, $notes) {
+        return DB::transaction(function () use ($version, $questions, $notes, $scoring) {
             $version->questions()->delete();
 
             foreach (array_values($questions) as $i => $q) {
@@ -49,7 +49,23 @@ class SaveVersionQuestions
                 'notes' => $notes,
                 'basic_threshold' => $scoring['basic_threshold'] ?? null,
                 'min_questions_per_skill' => $scoring['min_questions_per_skill'] ?? null,
+                'applied_threshold' => $scoring['applied_threshold'] ?? null,
+                'confident_threshold' => $scoring['confident_threshold'] ?? null,
             ], fn ($value) => $value !== null));
+
+            if (array_key_exists('practical_task', $scoring)) {
+                $rubric = filled($scoring['practical_task']) ? array_values(array_map(fn (array $c) => [
+                    'skill_id' => (int) $c['skill_id'],
+                    'criterion' => $c['criterion'],
+                    'max_points' => (int) $c['max_points'],
+                ], $scoring['practical_rubric'] ?? [])) : null;
+
+                if (filled($scoring['practical_task']) && ! $rubric) {
+                    throw new DomainRuleException('Для практического задания нужна рубрика хотя бы с одним критерием.');
+                }
+
+                $version->update(['practical_task' => $scoring['practical_task'] ?: null, 'practical_rubric' => $rubric]);
+            }
 
             return $version->load('questions');
         });

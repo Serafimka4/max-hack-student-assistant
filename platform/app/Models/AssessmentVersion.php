@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['version', 'notes', 'basic_threshold', 'min_questions_per_skill'])]
+#[Fillable(['version', 'notes', 'basic_threshold', 'min_questions_per_skill', 'practical_task', 'practical_rubric', 'applied_threshold', 'confident_threshold'])]
 class AssessmentVersion extends Model
 {
     protected function casts(): array
     {
-        return ['published_at' => 'datetime'];
+        return [
+            'published_at' => 'datetime',
+            'practical_rubric' => 'array',
+        ];
     }
 
     /** @return BelongsTo<Assessment, $this> */
@@ -31,6 +34,11 @@ class AssessmentVersion extends Model
     public function attempts(): HasMany
     {
         return $this->hasMany(AssessmentAttempt::class);
+    }
+
+    public function hasPractical(): bool
+    {
+        return filled($this->practical_task) && ! empty($this->practical_rubric);
     }
 
     public function isPublished(): bool

@@ -147,8 +147,8 @@ class AttemptsTest extends MiniAppTestCase
         $offer = InternshipOffer::with('skills')->where('title', 'Frontend-стажёр')->firstOrFail();
         $match = app(SkillMatcher::class)->match($offer, $this->student)->keyBy(fn ($row) => $row['skill']->title);
 
-        // Демо-профиль: HTML/CSS базовый при требуемом прикладном, HTTP подтверждён, JS и Git ниже базового.
-        $this->assertSame('gap', $match['HTML / CSS']['state']);
+        // Демо-профиль после проверки практики: HTML/CSS и HTTP — прикладной, JS и Git ниже базового.
+        $this->assertSame('ok', $match['HTML / CSS']['state']);
         $this->assertSame('ok', $match['HTTP и API']['state']);
         $this->assertSame('gap', $match['JavaScript']['state']);
         $this->assertSame('gap', $match['Git']['state']);

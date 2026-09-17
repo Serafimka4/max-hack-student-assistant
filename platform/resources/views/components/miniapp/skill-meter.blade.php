@@ -16,7 +16,7 @@
             $dark ? 'text-lime' : 'text-ink' => $outcome === SkillOutcome::Achieved,
             $dark ? 'text-muted-dark' : 'text-muted' => $outcome !== SkillOutcome::Achieved,
         ])>
-            {{ $label }}@if ($result && $outcome !== SkillOutcome::InsufficientData)<span class="font-medium {{ $dark ? 'text-muted-dark' : 'text-muted' }}"> · {{ $result->percent() }}%</span>@endif
+            {{ $label }}@if ($result && $outcome !== SkillOutcome::InsufficientData)<span class="font-medium {{ $dark ? 'text-muted-dark' : 'text-muted' }}"> · {{ $result->percent() }}%@if ($result->practicalPercent() !== null) · практика {{ $result->practicalPercent() }}%@endif</span>@endif
         </span>
     </div>
     @if ($result && $outcome !== SkillOutcome::InsufficientData)

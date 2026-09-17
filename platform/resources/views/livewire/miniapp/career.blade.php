@@ -77,7 +77,10 @@
                     @if ($graded)
                         <div class="mt-3 flex flex-wrap gap-2">
                             <span class="badge bg-ink-3 text-muted-dark">{{ $graded['assessment']->direction }} · v{{ $graded['last']->version->version }}</span>
-                            <span class="badge bg-coral/20 text-coral">Практика не проверялась</span>
+                            @php $graded['last']->loadMissing('practical'); @endphp
+                            <span @class(['badge', 'bg-lime text-ink' => $graded['last']->practical?->status === \App\Enums\PracticalStatus::Reviewed, 'bg-coral/20 text-coral' => $graded['last']->practical?->status !== \App\Enums\PracticalStatus::Reviewed])>
+                                {{ $graded['last']->practical ? 'Практика: '.mb_strtolower($graded['last']->practical->status->getLabel()) : 'Практика не проверялась' }}
+                            </span>
                         </div>
                     @endif
                 </div>

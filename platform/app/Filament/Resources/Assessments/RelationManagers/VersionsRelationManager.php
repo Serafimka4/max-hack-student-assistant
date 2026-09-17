@@ -20,7 +20,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +48,7 @@ class VersionsRelationManager extends RelationManager
                 TextColumn::make('version')->label('Версия')->prefix('v')->weight('bold'),
                 TextColumn::make('questions_count')->label('Вопросов')->counts('questions'),
                 TextColumn::make('basic_threshold')->label('Порог')->suffix('%'),
+                IconColumn::make('practical_task')->label('Практика')->boolean()->state(fn (AssessmentVersion $record) => $record->hasPractical()),
                 TextColumn::make('status')
                     ->label('Статус')
                     ->badge()
@@ -80,6 +83,10 @@ class VersionsRelationManager extends RelationManager
                         'notes' => $record->notes,
                         'basic_threshold' => $record->basic_threshold,
                         'min_questions_per_skill' => $record->min_questions_per_skill,
+                        'applied_threshold' => $record->applied_threshold,
+                        'confident_threshold' => $record->confident_threshold,
+                        'practical_task' => $record->practical_task,
+                        'practical_rubric' => $record->practical_rubric ?? [],
                         'questions' => $record->questions->map(fn ($q) => [
                             'skill_id' => $q->skill_id,
                             'type' => $q->type->value,
@@ -96,6 +103,10 @@ class VersionsRelationManager extends RelationManager
                             $save($record, $data['questions'] ?? [], $data['notes'] ?? null, [
                                 'basic_threshold' => (int) $data['basic_threshold'],
                                 'min_questions_per_skill' => (int) $data['min_questions_per_skill'],
+                                'applied_threshold' => (int) $data['applied_threshold'],
+                                'confident_threshold' => (int) $data['confident_threshold'],
+                                'practical_task' => $data['practical_task'] ?? null,
+                                'practical_rubric' => $data['practical_rubric'] ?? [],
                             ]);
                         } catch (DomainRuleException $e) {
                             Notification::make()->danger()->title($e->getMessage())->send();
@@ -174,6 +185,31 @@ class VersionsRelationManager extends RelationManager
                         ->helperText('Ключи правильных вариантов. Студенту не показываются.')
                         ->required()
                         ->columnSpanFull(),
+                ]),
+            Section::make('Практическое задание')
+                ->description('Проверяется специалистом по рубрике. Только оно даёт «Прикладной» и «Уверенный» уровни и грейд «Junior».')
+                ->collapsible()
+                ->schema([
+                    Textarea::make('practical_task')->label('Задание')->rows(4)->disabled($locked)
+                        ->helperText('Пусто — тест без практической части.'),
+                    Grid::make(2)->schema([
+                        TextInput::make('applied_threshold')->label('Порог «Прикладного», %')->numeric()->minValue(1)->maxValue(100)->required()->disabled($locked),
+                        TextInput::make('confident_threshold')->label('Порог «Уверенного», %')->numeric()->minValue(1)->maxValue(100)->required()->disabled($locked)
+                            ->gte('applied_threshold'),
+                    ]),
+                    Repeater::make('practical_rubric')
+                        ->label('Рубрика')
+                        ->disabled($locked)
+                        ->addActionLabel('Добавить критерий')
+                        ->requiredWith('practical_task')
+                        ->columns(6)
+                        ->defaultItems(0)
+                        ->schema([
+                            Select::make('skill_id')->label('Навык')->columnSpan(2)->required()->searchable()
+                                ->options(fn () => Skill::availableTo($organization)->orderBy('title')->pluck('title', 'id')),
+                            TextInput::make('criterion')->label('Критерий')->columnSpan(3)->required()->maxLength(500),
+                            TextInput::make('max_points')->label('Макс.')->numeric()->minValue(1)->maxValue(100)->default(2)->required(),
+                        ]),
                 ]),
         ];
     }

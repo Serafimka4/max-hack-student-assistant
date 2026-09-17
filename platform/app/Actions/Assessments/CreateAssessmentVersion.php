@@ -27,6 +27,10 @@ class CreateAssessmentVersion
                 // Правила оценки наследуются, чтобы новая версия не меняла их незаметно.
                 'basic_threshold' => $latest->basic_threshold ?? 60,
                 'min_questions_per_skill' => $latest->min_questions_per_skill ?? 2,
+                'applied_threshold' => $latest->applied_threshold ?? 70,
+                'confident_threshold' => $latest->confident_threshold ?? 90,
+                'practical_task' => $latest?->practical_task,
+                'practical_rubric' => $latest?->practical_rubric,
             ]);
 
             $questions ??= $latest?->questions

@@ -4,9 +4,12 @@ namespace Database\Seeders;
 
 use App\Actions\Assessments\CreateAssessmentVersion;
 use App\Actions\Assessments\PublishAssessmentVersion;
+use App\Actions\Assessments\SaveVersionQuestions;
 use App\Actions\Attempts\SaveAnswer;
 use App\Actions\Attempts\StartAttempt;
 use App\Actions\Attempts\SubmitAttempt;
+use App\Actions\Practical\ReviewPractical;
+use App\Actions\Practical\SubmitPractical;
 use App\Enums\ApplicationStatus;
 use App\Enums\LessonKind;
 use App\Enums\MemberRole;
@@ -49,6 +52,9 @@ class DemoSeeder extends Seeder
         User::create(['name' => 'HR работодателя', 'email' => 'hr@demo.test', 'password' => 'password'])
             ->organizations()->attach($employer, ['role' => MemberRole::Admin]);
 
+        User::create(['name' => 'Проверяющий специалист', 'email' => 'reviewer@demo.test', 'password' => 'password'])
+            ->organizations()->attach($employer, ['role' => MemberRole::Reviewer]);
+
         $skills = collect(['HTML / CSS', 'JavaScript', 'HTTP и API', 'Git'])
             ->mapWithKeys(fn (string $title) => [$title => Skill::create(['direction' => 'Frontend-разработка', 'title' => $title])]);
         $skills = $skills->merge([
@@ -87,6 +93,19 @@ class DemoSeeder extends Seeder
                 ['A' => 'git branch -m feature', 'B' => 'git switch -c feature', 'C' => 'git checkout feature'], ['B']),
             $q('Git', 'single', 'Что делает git rebase main, выполненный в ветке feature?',
                 ['A' => 'Переносит коммиты feature поверх main', 'B' => 'Сливает feature в main', 'C' => 'Удаляет ветку main'], ['A']),
+        ]);
+        app(SaveVersionQuestions::class)($version, $version->questions->map->only(
+            ['skill_id', 'type', 'prompt', 'code', 'options', 'correct_keys', 'points'],
+        )->all(), null, [
+            'practical_task' => "Сверстайте страницу списка вакансий по макету и загрузите данные из /api/vacancies.\n"
+                .'Покажите состояние загрузки и ошибку, если API недоступно. Решение — ссылка на репозиторий с README.',
+            'practical_rubric' => [
+                ['skill_id' => $skills['HTML / CSS']->id, 'criterion' => 'Вёрстка адаптивна на ширине 375–1440 px', 'max_points' => 4],
+                ['skill_id' => $skills['HTML / CSS']->id, 'criterion' => 'Семантическая разметка и доступность', 'max_points' => 2],
+                ['skill_id' => $skills['JavaScript']->id, 'criterion' => 'Данные загружаются асинхронно, состояние загрузки отображается', 'max_points' => 4],
+                ['skill_id' => $skills['HTTP и API']->id, 'criterion' => 'Обработаны ошибки ответа API', 'max_points' => 4],
+                ['skill_id' => $skills['Git']->id, 'criterion' => 'Осмысленная история коммитов', 'max_points' => 2],
+            ],
         ]);
         $publish($version);
 
@@ -131,6 +150,22 @@ class DemoSeeder extends Seeder
 
         app(SubmitAttempt::class)($attempt);
         $attempt->forceFill(['started_at' => now()->subDays(20), 'submitted_at' => now()->subDays(20)->addMinutes(18)])->save();
+
+        // Решение проверено специалистом: HTML/CSS и HTTP — «Прикладной», JavaScript и Git без уровня (не подтверждены вопросами).
+        $submission = app(SubmitPractical::class)($attempt->fresh(), $student, 'https://example.com/demo/vacancies', 'Страница вакансий на Vite, fetch с обработкой ошибок.');
+        $reviewer = User::where('email', 'reviewer@demo.test')->firstOrFail();
+        app(ReviewPractical::class)($submission, $reviewer, [4, 1, 2, 3, 1], 'Хорошая адаптивная вёрстка. Стоит добавить семантические заголовки и повторную попытку загрузки.');
+        $submission->forceFill(['submitted_at' => now()->subDays(19), 'reviewed_at' => now()->subDays(17)])->save();
+
+        // Второй демо-студент: решение ждёт проверки — видно в разделе «Проверка практики».
+        $second = User::create(['name' => 'Мария Демо', 'email' => 'student2@demo.test']);
+        $second->student()->create(['organization_id' => $student->student->organization_id]);
+        $other = app(StartAttempt::class)($assessment, $second);
+        foreach ($other->version->questions as $question) {
+            $save($other, $second, $question->id, $question->correct_keys);
+        }
+        app(SubmitAttempt::class)($other);
+        app(SubmitPractical::class)($other->fresh(), $second, 'https://example.com/demo/vacancies-maria', null);
     }
 
     /**
