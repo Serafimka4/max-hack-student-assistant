@@ -1,0 +1,84 @@
+name: max-hack
+
+x-app: &app
+  build:
+    context: ./platform
+  image: max-hack-platform:local
+  env_file:
+    - path: .env
+      required: false
+  environment: &app-env
+    APP_ENV: ${APP_ENV:-production}
+    APP_DEBUG: ${APP_DEBUG:-false}
+    APP_URL: ${APP_URL:-http://localhost:8088}
+    APP_KEY: ${APP_KEY:-}
+    LOG_CHANNEL: stderr
+    DB_CONNECTION: pgsql
+    DB_HOST: db
+    DB_PORT: 5432
+    DB_DATABASE: ${DB_DATABASE:-max_hack}
+    DB_USERNAME: ${DB_USERNAME:-max_hack}
+    DB_PASSWORD: ${DB_PASSWORD:-max_hack}
+    SESSION_DRIVER: database
+    CACHE_STORE: database
+    QUEUE_CONNECTION: database
+    MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
+  volumes:
+    - storage:/app/storage/app
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *app
+    environment:
+      <<: *app-env
+      RUN_MIGRATIONS: "1"
+      SEED_DEMO: ${SEED_DEMO:-1}
+    ports:
+      - "${APP_PORT:-8088}:80"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  queue:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--tries=3", "--max-time=3600"]
+    healthcheck:
+      disable: true
+    depends_on:
+      app:
+        condition: service_healthy
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+    healthcheck:
+      disable: true
+    depends_on:
+      app:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-max_hack}
+      POSTGRES_USER: ${DB_USERNAME:-max_hack}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-max_hack}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  storage:
