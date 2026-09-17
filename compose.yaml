@@ -8,7 +8,8 @@ x-app: &app
     - path: .env
       required: false
   environment: &app-env
-    APP_ENV: ${APP_ENV:-production}
+    # По умолчанию — демонстрационный режим: демо-данные и вход демо-студентом. Для рабочего сервера: APP_ENV=production.
+    APP_ENV: ${APP_ENV:-local}
     APP_DEBUG: ${APP_DEBUG:-false}
     APP_URL: ${APP_URL:-http://localhost:8088}
     APP_KEY: ${APP_KEY:-}
@@ -25,9 +26,9 @@ x-app: &app
     MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
     MINIAPP_TIMEZONE: ${MINIAPP_TIMEZONE:-Europe/Saratov}
     MINIAPP_SEMESTER_START: ${MINIAPP_SEMESTER_START:-2026-09-01}
-    MINIAPP_ENROLL_ORGANIZATION: ${MINIAPP_ENROLL_ORGANIZATION:-}
+    MINIAPP_ENROLL_ORGANIZATION: ${MINIAPP_ENROLL_ORGANIZATION:-demo-university}
     MINIAPP_DEMO_DATA: ${MINIAPP_DEMO_DATA:-true}
-    MINIAPP_DEMO_LOGIN: ${MINIAPP_DEMO_LOGIN:-false}
+    MINIAPP_DEMO_LOGIN: ${MINIAPP_DEMO_LOGIN:-true}
     SESSION_SAME_SITE: ${SESSION_SAME_SITE:-lax}
     SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-false}
     SESSION_PARTITIONED_COOKIE: ${SESSION_PARTITIONED_COOKIE:-false}

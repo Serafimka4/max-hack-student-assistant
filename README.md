@@ -14,7 +14,6 @@
 ## Запуск
 
 ```bash
-cp .env.example .env   # при необходимости поменяйте пароль БД и укажите MAX_BOT_TOKEN
 docker compose up -d --build
 ```
 
@@ -24,6 +23,8 @@ docker compose up -d --build
 | http://localhost:8088/admin | Админ-панель |
 | http://localhost:8088/docs/api | Документация API (OpenAPI 3.1, JSON — `/docs/api.json`) |
 | http://localhost:8088/up | Проверка работоспособности |
+
+Стек сразу запускается в демонстрационном режиме, `.env` не нужен: загружаются демо-данные и учётные записи ниже, на http://localhost:8088/app/start есть кнопка «Войти как демо-студент». Для рабочего сервера скопируйте `.env.example` в `.env` и задайте `APP_ENV=production`, `MINIAPP_DEMO_LOGIN=false`, `SEED_DEMO=0`, свой `DB_PASSWORD` и `MAX_BOT_TOKEN`.
 
 Остановка: `docker compose down` (данные сохраняются в томах `pgdata` и `storage`). Полный сброс: `docker compose down -v`.
 
@@ -37,7 +38,7 @@ docker compose up -d --build
 | `editor@demo.test` | Редактор «Демо-вуза»: шаблоны документов |
 | `hr@demo.test` | Администратор «Волга Софт»: тесты навыков |
 | `reviewer@demo.test` | Проверяющий «Волга Софт»: проверка практических заданий |
-| `student@demo.test` | Студент демо-вуза (без пароля; вход кнопкой при `MINIAPP_DEMO_LOGIN=true`) |
+| `student@demo.test` | Студент демо-вуза (без пароля; кнопка «Войти как демо-студент» на `/app/start`) |
 
 ## Мини-приложение
 
