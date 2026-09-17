@@ -24,7 +24,7 @@ class ScreensTest extends MiniAppTestCase
             ->assertSee('Аналитик данных');
         $this->get('/app/schedule')->assertOk()->assertSee('Числитель')->assertSee('Операционные системы');
         $this->get('/app/career')->assertOk()->assertSee('Frontend-стажёр');
-        $this->get('/app/career?view=skills')->assertOk()->assertSee('Диагностика frontend-стажёра (демо)');
+        $this->get('/app/career?view=skills')->assertOk()->assertSee('Диагностика frontend-стажёра (демо)')->assertSee('Начальный');
         $this->get('/app/career?view=applications')->assertOk()->assertSee('На рассмотрении');
         $this->get('/app/help')->assertOk()->assertSee('Заявление на практику (демо)')->assertSee('downloadFile(', false)->assertSee('files\\/templates', false);
     }

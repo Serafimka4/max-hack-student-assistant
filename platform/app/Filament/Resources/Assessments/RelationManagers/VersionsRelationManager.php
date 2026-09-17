@@ -19,6 +19,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Grid;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -44,6 +45,7 @@ class VersionsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('version')->label('Версия')->prefix('v')->weight('bold'),
                 TextColumn::make('questions_count')->label('Вопросов')->counts('questions'),
+                TextColumn::make('basic_threshold')->label('Порог')->suffix('%'),
                 TextColumn::make('status')
                     ->label('Статус')
                     ->badge()
@@ -76,6 +78,8 @@ class VersionsRelationManager extends RelationManager
                     ->modalSubmitAction(fn (AssessmentVersion $record, Action $action) => $this->editable($record) ? $action : false)
                     ->fillForm(fn (AssessmentVersion $record) => [
                         'notes' => $record->notes,
+                        'basic_threshold' => $record->basic_threshold,
+                        'min_questions_per_skill' => $record->min_questions_per_skill,
                         'questions' => $record->questions->map(fn ($q) => [
                             'skill_id' => $q->skill_id,
                             'type' => $q->type->value,
@@ -89,7 +93,10 @@ class VersionsRelationManager extends RelationManager
                     ->schema(fn (AssessmentVersion $record) => $this->questionsSchema(! $this->editable($record)))
                     ->action(function (AssessmentVersion $record, array $data, Action $action, SaveVersionQuestions $save) {
                         try {
-                            $save($record, $data['questions'] ?? [], $data['notes'] ?? null);
+                            $save($record, $data['questions'] ?? [], $data['notes'] ?? null, [
+                                'basic_threshold' => (int) $data['basic_threshold'],
+                                'min_questions_per_skill' => (int) $data['min_questions_per_skill'],
+                            ]);
                         } catch (DomainRuleException $e) {
                             Notification::make()->danger()->title($e->getMessage())->send();
                             $action->halt();
@@ -122,6 +129,12 @@ class VersionsRelationManager extends RelationManager
 
         return [
             Textarea::make('notes')->label('Что изменилось в версии')->rows(2)->disabled($locked),
+            Grid::make(2)->schema([
+                TextInput::make('basic_threshold')->label('Порог базового уровня, %')->numeric()->minValue(1)->maxValue(100)
+                    ->required()->disabled($locked)->helperText('Согласуйте с преподавателем и работодателем до отбора.'),
+                TextInput::make('min_questions_per_skill')->label('Минимум вопросов на навык')->numeric()->minValue(1)->maxValue(20)
+                    ->required()->disabled($locked)->helperText('Меньше — «недостаточно данных».'),
+            ]),
             Repeater::make('questions')
                 ->label('Вопросы')
                 ->disabled($locked)

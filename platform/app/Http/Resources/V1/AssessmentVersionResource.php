@@ -16,6 +16,10 @@ class AssessmentVersionResource extends JsonResource
             'version' => $this->version,
             'notes' => $this->notes,
             'is_published' => $this->isPublished(),
+            /** Порог базового уровня по навыку, %. */
+            'basic_threshold' => $this->basic_threshold,
+            /** Минимум вопросов на навык для оценки. */
+            'min_questions_per_skill' => $this->min_questions_per_skill,
             'published_at' => $this->published_at,
             'questions_count' => $this->whenCounted('questions'),
             'questions' => AssessmentQuestionResource::collection($this->whenLoaded('questions')),

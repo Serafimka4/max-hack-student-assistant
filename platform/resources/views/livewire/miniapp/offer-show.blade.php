@@ -54,10 +54,22 @@
                         <div class="flex-1">
                             <div class="font-bold">{{ $row['skill']->title }}</div>
                             <div class="text-2xs text-muted">
-                                Нужно: {{ mb_strtolower($row['required']->getLabel()) }} · у вас: {{ $row['mine'] ? mb_strtolower($row['mine']->getLabel()) : 'не оценено' }}
+                                Нужно: {{ mb_strtolower($row['required']->getLabel()) }} · у вас:
+                                {{ match (true) {
+                                    $row['mine'] !== null => mb_strtolower($row['mine']->getLabel()).' ('.$row['result']->percent().'%)',
+                                    $row['state'] === 'gap' => 'базовый не подтверждён ('.$row['result']->percent().'%)',
+                                    default => 'не оценено',
+                                } }}
                             </div>
                         </div>
-                        <span class="text-2xs font-bold">{{ ['ok' => 'Подтверждено', 'gap' => 'Ниже требуемого', 'unknown' => 'Не оценено'][$row['state']] }}</span>
+                        <span class="text-right text-2xs font-bold">
+                            {{ match (true) {
+                                $row['state'] === 'ok' => 'Подтверждено',
+                                $row['state'] === 'unknown' => 'Не оценено',
+                                $row['mine'] !== null => 'Нужна проверка практики',
+                                default => 'Ниже требуемого',
+                            } }}
+                        </span>
                     </div>
                 @endforeach
             </div>
@@ -82,7 +94,12 @@
             <label class="card flex cursor-pointer items-center gap-3">
                 <div class="flex-1">
                     <div class="font-extrabold">Приложить результаты диагностики</div>
-                    <div class="mt-0.5 text-2xs text-muted">Увидит только {{ $offer->company_name }}. Доступ можно отозвать.</div>
+                    <div class="mt-0.5 text-2xs text-muted">
+                        Профиль навыков и дата теста — только для {{ $offer->company_name }} в рамках этой заявки.
+                        @unless ($match->contains(fn ($m) => $m['result']))
+                            Диагностика ещё не пройдена — <a href="{{ route('miniapp.career', ['view' => 'skills']) }}" wire:navigate class="font-bold text-ink underline">пройти</a>.
+                        @endunless
+                    </div>
                 </div>
                 <input type="checkbox" wire:model="shareResults"
                     class="relative h-7 w-12 flex-none cursor-pointer appearance-none rounded-full bg-line transition checked:bg-ink

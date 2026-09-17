@@ -24,6 +24,9 @@ class CreateAssessmentVersion
             $version = $assessment->versions()->create([
                 'version' => ($latest?->version ?? 0) + 1,
                 'notes' => $notes,
+                // Правила оценки наследуются, чтобы новая версия не меняла их незаметно.
+                'basic_threshold' => $latest->basic_threshold ?? 60,
+                'min_questions_per_skill' => $latest->min_questions_per_skill ?? 2,
             ]);
 
             $questions ??= $latest?->questions

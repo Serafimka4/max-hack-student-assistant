@@ -4,6 +4,9 @@ namespace Database\Seeders;
 
 use App\Actions\Assessments\CreateAssessmentVersion;
 use App\Actions\Assessments\PublishAssessmentVersion;
+use App\Actions\Attempts\SaveAnswer;
+use App\Actions\Attempts\StartAttempt;
+use App\Actions\Attempts\SubmitAttempt;
 use App\Enums\ApplicationStatus;
 use App\Enums\LessonKind;
 use App\Enums\MemberRole;
@@ -13,6 +16,7 @@ use App\Enums\SkillLevel;
 use App\Enums\TicketCategory;
 use App\Enums\TicketStatus;
 use App\Enums\WeekParity;
+use App\Models\Assessment;
 use App\Models\Organization;
 use App\Models\Skill;
 use App\Models\Ticket;
@@ -62,30 +66,32 @@ class DemoSeeder extends Seeder
             'retake_after_days' => 14,
         ]);
 
-        $version = $createVersion($assessment, notes: 'Первая версия', questions: [
-            [
-                'skill_id' => $skills['JavaScript']->id, 'type' => 'single', 'points' => 1,
-                'prompt' => 'Что выведет код?',
-                'code' => 'console.log([1, 2, 3].map(n => n * 2).at(-1));',
-                'options' => [['key' => 'A', 'text' => '3'], ['key' => 'B', 'text' => '6'], ['key' => 'C', 'text' => 'undefined']],
-                'correct_keys' => ['B'],
-            ],
-            [
-                'skill_id' => $skills['HTTP и API']->id, 'type' => 'single', 'points' => 1,
-                'prompt' => 'Какой код ответа означает, что ресурс создан?',
-                'options' => [['key' => 'A', 'text' => '200'], ['key' => 'B', 'text' => '201'], ['key' => 'C', 'text' => '204']],
-                'correct_keys' => ['B'],
-            ],
-            [
-                'skill_id' => $skills['HTML / CSS']->id, 'type' => 'multiple', 'points' => 2,
-                'prompt' => 'Какие свойства участвуют в построении flex-раскладки?',
-                'options' => [['key' => 'A', 'text' => 'justify-content'], ['key' => 'B', 'text' => 'float'], ['key' => 'C', 'text' => 'flex-direction']],
-                'correct_keys' => ['A', 'C'],
-            ],
+        $q = fn (string $skill, string $type, string $prompt, array $options, array $correct, ?string $code = null, int $points = 1) => [
+            'skill_id' => $skills[$skill]->id, 'type' => $type, 'prompt' => $prompt, 'code' => $code, 'points' => $points,
+            'options' => collect($options)->map(fn ($text, $key) => ['key' => $key, 'text' => $text])->values()->all(),
+            'correct_keys' => $correct,
+        ];
+
+        $version = $createVersion($assessment, notes: 'Первая версия (демо)', questions: [
+            $q('HTML / CSS', 'multiple', 'Какие свойства участвуют в построении flex-раскладки?',
+                ['A' => 'justify-content', 'B' => 'float', 'C' => 'flex-direction'], ['A', 'C'], points: 2),
+            $q('HTML / CSS', 'single', 'Какой элемент семантически подходит для основной навигации сайта?',
+                ['A' => '<div class="nav">', 'B' => '<nav>', 'C' => '<menuitem>'], ['B']),
+            $q('JavaScript', 'single', 'Что выведет код?', ['A' => '3', 'B' => '6', 'C' => 'undefined'], ['B'],
+                'console.log([1, 2, 3].map(n => n * 2).at(-1));'),
+            $q('JavaScript', 'single', 'В чём ошибка?', ['A' => 'fetch не возвращает промис', 'B' => 'Нет await перед response.json()', 'C' => 'Ошибки нет'], ['B'],
+                "async function load() {\n  const response = await fetch('/api/items');\n  const data = response.json();\n  return data.items;\n}"),
+            $q('HTTP и API', 'single', 'Какой код ответа означает, что ресурс создан?', ['A' => '200', 'B' => '201', 'C' => '204'], ['B']),
+            $q('HTTP и API', 'multiple', 'Какие методы HTTP идемпотентны?', ['A' => 'GET', 'B' => 'POST', 'C' => 'PUT', 'D' => 'DELETE'], ['A', 'C', 'D']),
+            $q('Git', 'single', 'Какая команда создаёт новую ветку и переключается на неё?',
+                ['A' => 'git branch -m feature', 'B' => 'git switch -c feature', 'C' => 'git checkout feature'], ['B']),
+            $q('Git', 'single', 'Что делает git rebase main, выполненный в ветке feature?',
+                ['A' => 'Переносит коммиты feature поверх main', 'B' => 'Сливает feature в main', 'C' => 'Удаляет ветку main'], ['A']),
         ]);
         $publish($version);
 
-        $this->seedStudentServices($university, $employer, $skills->all());
+        $student = $this->seedStudentServices($university, $employer, $skills->all());
+        $this->seedDemoAttempt($assessment, $student);
 
         $template = $university->documentTemplates()->create([
             'title' => 'Заявление на практику (демо)',
@@ -104,6 +110,27 @@ class DemoSeeder extends Seeder
             'version' => 1, 'disk' => $disk, 'path' => $path, 'original_name' => 'zayavlenie-na-praktiku.pdf',
             'mime_type' => 'application/pdf', 'size' => Storage::disk($disk)->size($path),
         ]);
+    }
+
+    /** Завершённая демо-попытка, чтобы профиль навыков был заполнен. Помечена как демо в названии теста. */
+    private function seedDemoAttempt(Assessment $assessment, User $student): void
+    {
+        $attempt = app(StartAttempt::class)($assessment->load('publishedVersion'), $student);
+        $save = app(SaveAnswer::class);
+        $questions = $attempt->version->questions()->with('skill')->get();
+
+        // HTML/CSS и HTTP — верно, JavaScript — наполовину, Git — без ответов. Дата в прошлом, чтобы повторная попытка была доступна на демонстрации.
+        foreach ($questions as $question) {
+            $keys = match ($question->skill->title) {
+                'HTML / CSS', 'HTTP и API' => $question->correct_keys,
+                'JavaScript' => $question->position === 3 ? $question->correct_keys : ['A'],
+                default => null,
+            };
+            $keys && $save($attempt, $student, $question->id, $keys);
+        }
+
+        app(SubmitAttempt::class)($attempt);
+        $attempt->forceFill(['started_at' => now()->subDays(20), 'submitted_at' => now()->subDays(20)->addMinutes(18)])->save();
     }
 
     /**

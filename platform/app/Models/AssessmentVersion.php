@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['version', 'notes'])]
+#[Fillable(['version', 'notes', 'basic_threshold', 'min_questions_per_skill'])]
 class AssessmentVersion extends Model
 {
     protected function casts(): array
@@ -25,6 +25,12 @@ class AssessmentVersion extends Model
     public function questions(): HasMany
     {
         return $this->hasMany(AssessmentQuestion::class)->orderBy('position');
+    }
+
+    /** @return HasMany<AssessmentAttempt, $this> */
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(AssessmentAttempt::class);
     }
 
     public function isPublished(): bool

@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\DB;
  */
 class SaveVersionQuestions
 {
-    /** @param list<array<string, mixed>> $questions уже прошедшие QuestionRules */
-    public function __invoke(AssessmentVersion $version, array $questions, ?string $notes = null): AssessmentVersion
+    /**
+     * @param  list<array<string, mixed>>  $questions  уже прошедшие QuestionRules
+     * @param  array{basic_threshold?: int, min_questions_per_skill?: int}  $scoring  правила оценки версии
+     */
+    public function __invoke(AssessmentVersion $version, array $questions, ?string $notes = null, array $scoring = []): AssessmentVersion
     {
         if ($version->isPublished()) {
             throw new DomainRuleException('Опубликованная версия теста не изменяется. Создайте новую версию.');
@@ -42,9 +45,11 @@ class SaveVersionQuestions
                 ]);
             }
 
-            if ($notes !== null) {
-                $version->update(['notes' => $notes]);
-            }
+            $version->update(array_filter([
+                'notes' => $notes,
+                'basic_threshold' => $scoring['basic_threshold'] ?? null,
+                'min_questions_per_skill' => $scoring['min_questions_per_skill'] ?? null,
+            ], fn ($value) => $value !== null));
 
             return $version->load('questions');
         });

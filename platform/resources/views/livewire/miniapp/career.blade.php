@@ -44,7 +44,7 @@
                         <div class="mt-auto flex items-center justify-between gap-2 border-t border-ink/15 pt-3">
                             <span class="inline-flex items-center gap-1.5 text-2xs font-bold">
                                 <x-miniapp.match-dots :match="$row['match']" />
-                                @if ($ok === 0 && $row['match']->isNotEmpty())
+                                @if ($ok === 0 && $row['match']->every(fn ($m) => $m['state'] === 'unknown'))
                                     Навыки не оценены
                                 @else
                                     {{ $ok }} из {{ $row['match']->count() }} навыков подтверждено
@@ -71,42 +71,60 @@
                 <div class="pointer-events-none absolute -right-16 -top-16 size-[190px] rounded-full bg-blue opacity-90"></div>
                 <div class="relative">
                     <span class="eyebrow text-lime">Профиль навыков</span>
+                    @php $graded = $assessments->first(fn ($row) => $row['last'] !== null); @endphp
                     <div class="mt-3.5 text-[13px] text-muted-dark">Предварительный грейд</div>
-                    <div class="heading mt-1 text-[30px]">Не оценено</div>
-                    <p class="mt-3 text-2xs text-muted-dark">
-                        «Не оценено» — нет проверенных данных, а не низкий результат. Грейд появится после диагностики и проверки практического задания специалистом.
-                    </p>
+                    <div class="heading mt-1 text-[30px]">{{ $graded['grade'] ?? 'Не оценено' }}</div>
+                    @if ($graded)
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <span class="badge bg-ink-3 text-muted-dark">{{ $graded['assessment']->direction }} · v{{ $graded['last']->version->version }}</span>
+                            <span class="badge bg-coral/20 text-coral">Практика не проверялась</span>
+                        </div>
+                    @endif
                 </div>
+
+                @if ($results->isNotEmpty())
+                    <div class="relative mt-5 flex flex-col gap-3.5">
+                        @foreach ($results as $result)
+                            <x-miniapp.skill-meter :result="$result" :title="$result->skill->title" dark />
+                        @endforeach
+                    </div>
+                @endif
+
+                <p class="relative mt-4 text-2xs text-muted-dark">
+                    «Не оценено» — нет проверенных данных, а не низкий результат. Прикладной уровень и грейд «Junior» — только после проверки практического задания специалистом.
+                </p>
             </div>
         </x-miniapp.section>
 
         <x-miniapp.section title="Диагностика">
             <div class="flex flex-col gap-2.5">
-                @forelse ($assessments as $assessment)
-                    @php $version = $assessment->publishedVersion; $skills = $version->questions->pluck('skill')->unique('id'); @endphp
-                    <div class="card" wire:key="assessment-{{ $assessment->id }}">
+                @forelse ($assessments as $row)
+                    @php $assessment = $row['assessment']; $version = $assessment->publishedVersion; @endphp
+                    <a href="{{ route('miniapp.assessments.show', $assessment) }}" wire:navigate class="card pressable" wire:key="assessment-{{ $assessment->id }}">
                         <div class="flex items-center justify-between gap-2">
                             <span class="eyebrow text-muted">{{ $assessment->organization->short_name ?? $assessment->organization->name }}</span>
-                            <span class="badge bg-ink/[.07] text-ink">v{{ $version->version }}</span>
+                            @if ($row['open'])
+                                <span class="badge bg-blue/15 text-[#3159cf]"><span class="dot"></span>Не завершён</span>
+                            @elseif ($row['last'])
+                                <span class="badge bg-lime text-ink">Пройден</span>
+                            @else
+                                <span class="badge bg-ink/[.07] text-ink">v{{ $version->version }}</span>
+                            @endif
                         </div>
                         <div class="mt-2 font-extrabold">{{ $assessment->title }}</div>
                         <div class="mt-0.5 text-[13px] text-muted">
-                            {{ $assessment->direction }} · {{ trans_choice(':count вопрос|:count вопроса|:count вопросов', $version->questions->count()) }}@if ($assessment->duration_minutes) · ~{{ $assessment->duration_minutes }} мин@endif
+                            {{ $assessment->direction }} · {{ trans_choice(':count вопрос|:count вопроса|:count вопросов', $version->questions->count()) }}@if ($assessment->duration_minutes) · {{ $assessment->duration_minutes }} мин@endif
                         </div>
-                        <div class="mt-3.5 flex flex-col gap-2.5">
-                            @foreach ($skills as $skill)
-                                <div>
-                                    <div class="flex items-center justify-between text-[13px]">
-                                        <span class="font-bold">{{ $skill->title }}</span>
-                                        <span class="text-muted">Не оценено</span>
-                                    </div>
-                                    <div class="meter meter-hatched mt-1.5"></div>
-                                </div>
-                            @endforeach
+                        <div class="mt-3 flex items-center justify-between border-t border-line pt-3 text-[13px] font-bold">
+                            <span>
+                                @if ($row['open']) Продолжить
+                                @elseif ($row['last']) Результат от {{ $row['last']->submitted_at->timezone(config('miniapp.timezone'))->translatedFormat('j M') }}
+                                @else Начать диагностику
+                                @endif
+                            </span>
+                            <x-miniapp.icon name="arrow" :size="18" />
                         </div>
-                        <button type="button" class="btn-ink mt-4 w-full" disabled>Прохождение теста — скоро</button>
-                        <p class="mt-2 text-2xs text-muted">Повторная попытка — через {{ $assessment->retake_after_days }} дн. после завершения.</p>
-                    </div>
+                    </a>
                 @empty
                     <div class="card text-[13px] text-muted">Опубликованных тестов пока нет.</div>
                 @endforelse

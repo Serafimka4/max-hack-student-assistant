@@ -37,6 +37,9 @@ class AssessmentVersionController extends Controller
         Gate::authorize('update', $assessment);
 
         $version = $create($assessment, $request->validated('questions'), $request->validated('notes'));
+        if ($scoring = $request->safe()->only(['basic_threshold', 'min_questions_per_skill'])) {
+            $version->update($scoring);
+        }
 
         return AssessmentVersionResource::make($version->load('questions.version.assessment'));
     }
@@ -58,7 +61,7 @@ class AssessmentVersionController extends Controller
     {
         Gate::authorize('update', $assessment);
 
-        $version = $save($version, $request->validated('questions'), $request->validated('notes'));
+        $version = $save($version, $request->validated('questions'), $request->validated('notes'), $request->safe()->only(['basic_threshold', 'min_questions_per_skill']));
 
         return AssessmentVersionResource::make($version->load('questions.version.assessment'));
     }

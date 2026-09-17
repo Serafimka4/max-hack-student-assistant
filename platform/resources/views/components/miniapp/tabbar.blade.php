@@ -2,7 +2,7 @@
     $tabs = [
         ['route' => 'miniapp.home', 'match' => 'miniapp.home', 'label' => 'Главная', 'icon' => 'home'],
         ['route' => 'miniapp.schedule', 'match' => 'miniapp.schedule', 'label' => 'Расписание', 'icon' => 'calendar'],
-        ['route' => 'miniapp.career', 'match' => ['miniapp.career', 'miniapp.offers.*'], 'label' => 'Карьера', 'icon' => 'briefcase'],
+        ['route' => 'miniapp.career', 'match' => ['miniapp.career', 'miniapp.offers.*', 'miniapp.assessments.*', 'miniapp.attempts.*'], 'label' => 'Карьера', 'icon' => 'briefcase'],
         ['route' => 'miniapp.help', 'match' => 'miniapp.help', 'label' => 'Помощь', 'icon' => 'help'],
     ];
 @endphp

@@ -56,6 +56,18 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->hasMany(InternshipApplication::class);
     }
 
+    /** @return HasMany<AssessmentAttempt, $this> */
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(AssessmentAttempt::class);
+    }
+
+    /** @return HasMany<SkillResult, $this> */
+    public function skillResults(): HasMany
+    {
+        return $this->hasMany(SkillResult::class);
+    }
+
     /** @return HasMany<Ticket, $this> */
     public function tickets(): HasMany
     {

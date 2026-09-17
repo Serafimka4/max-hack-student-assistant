@@ -18,6 +18,6 @@ class AssessmentVersionRequest extends FormRequest
             $rules['questions'] = ['sometimes', ...array_slice($rules['questions'], 1)];
         }
 
-        return ['notes' => ['nullable', 'string', 'max:2000'], ...$rules];
+        return ['notes' => ['nullable', 'string', 'max:2000'], ...QuestionRules::scoring(), ...$rules];
     }
 }

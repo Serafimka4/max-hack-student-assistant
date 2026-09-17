@@ -10,6 +10,17 @@ use Illuminate\Validation\Rule;
 /** Правила вопросов теста — общие для API и админ-панели. */
 class QuestionRules
 {
+    /** @return array<string, mixed> правила оценки версии */
+    public static function scoring(): array
+    {
+        return [
+            /** Порог базового уровня по навыку, %. */
+            'basic_threshold' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            /** Минимум вопросов на навык, иначе «недостаточно данных». */
+            'min_questions_per_skill' => ['sometimes', 'integer', 'min:1', 'max:20'],
+        ];
+    }
+
     /** @return array<string, mixed> */
     /** Организация может отсутствовать только при построении документации API: тогда доступны лишь общие навыки. */
     public static function for(?Organization $organization, string $prefix = 'questions'): array
