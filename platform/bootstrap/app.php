@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Приложение работает за nginx: схему и адрес клиента берём из заголовков прокси.
+        $middleware->trustProxies(at: '*');
+
         // Вебхук MAX приходит без сессии и CSRF-токена.
         $middleware->validateCsrfTokens(except: ['max/webhook']);
 
