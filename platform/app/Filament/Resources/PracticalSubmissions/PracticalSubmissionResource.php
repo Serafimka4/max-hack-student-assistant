@@ -25,6 +25,8 @@ class PracticalSubmissionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'проверка практики';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Диагностика навыков';
+
     protected static ?int $navigationSort = 20;
 
     public static function getNavigationBadge(): ?string

@@ -25,6 +25,8 @@ class DocumentTemplateResource extends Resource
 
     protected static ?string $pluralModelLabel = 'шаблоны документов';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Поддержка студентов';
+
     protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema

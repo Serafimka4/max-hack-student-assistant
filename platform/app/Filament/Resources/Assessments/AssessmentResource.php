@@ -25,6 +25,8 @@ class AssessmentResource extends Resource
 
     protected static ?string $pluralModelLabel = 'тесты навыков';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Диагностика навыков';
+
     protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema
