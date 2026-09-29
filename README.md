@@ -76,6 +76,8 @@ docker compose exec app php artisan max:webhook show
 docker compose exec app php artisan max:webhook subscribe
 ```
 
+- Сертификат Минцифры уже лежит в `platform/docker/certs/` — без него запросы к `platform-api2.max.ru` падают с ошибкой TLS. Он добавляется в доверенные только внутри образа.
+- `MAX_BOT_NAME` — username бота без «@» (для диплинков), а не отображаемое имя.
 - Уведомления студенту приходят при решении по заявке, ответе на обращение и проверке практического задания. Сбой отправки не отменяет действие сотрудника: ошибка только пишется в лог.
 - Кнопки в сообщениях — диплинки `?startapp=`: `schedule`, `career`, `help`, `offer_<id>`, `attempt_<id>`.
 

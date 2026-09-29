@@ -14,7 +14,7 @@ FROM dunglas/frankenphp:1-php8.5-bookworm
 
 RUN install-php-extensions pdo_pgsql intl zip bcmath gd opcache pcntl @composer
 
-# Доверенные корневые сертификаты (например, Минцифры для platform-api2.max.ru): положите *.crt в docker/certs.
+# Доверенные корневые сертификаты: Russian Trusted Root CA (Минцифры) нужен для запросов к platform-api2.max.ru.
 COPY docker/certs/ /usr/local/share/ca-certificates/extra/
 RUN update-ca-certificates
 
