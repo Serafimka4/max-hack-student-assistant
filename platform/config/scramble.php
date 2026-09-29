@@ -111,7 +111,10 @@ return [
      * ],
      * ```
      */
-    'servers' => null,
+    'servers' => [
+        'Демонстрационный стенд' => 'https://max-hack.ai-weblab.ru/api',
+        'Локальный запуск' => 'http://localhost:8088/api',
+    ],
 
     /**
      * Determines how Scramble stores the descriptions of enum cases.
