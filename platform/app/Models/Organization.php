@@ -64,6 +64,12 @@ class Organization extends Model implements HasName
         return $this->hasMany(StudyGroup::class);
     }
 
+    /** @return HasMany<Ticket, $this> */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
     /** @return HasMany<FaqItem, $this> */
     public function faqItems(): HasMany
     {

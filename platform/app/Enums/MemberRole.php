@@ -21,6 +21,12 @@ enum MemberRole: string implements HasLabel
         };
     }
 
+    /** Ведёт заявки на практику и обращения студентов. */
+    public function canCoordinate(): bool
+    {
+        return in_array($this, [self::Admin, self::Coordinator], true);
+    }
+
     /** Может проверять практические задания по тестам организации. */
     public function canReview(): bool
     {

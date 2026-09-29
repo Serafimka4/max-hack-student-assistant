@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['organization_id', 'direction', 'title'])]
 class Skill extends Model
@@ -14,6 +15,12 @@ class Skill extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /** @return BelongsToMany<InternshipOffer, $this> */
+    public function internshipOffers(): BelongsToMany
+    {
+        return $this->belongsToMany(InternshipOffer::class);
     }
 
     /** Навыки, доступные организации: общий справочник и собственные. */
