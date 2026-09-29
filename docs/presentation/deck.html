@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Хакатон MAX — Образовательные решения — AI-WEBLAB</title>
+<style>
+  @font-face { font-family: 'Unbounded'; src: url('fonts/unbounded.woff2') format('woff2'); font-weight: 200 900; font-display: block; }
+  @font-face { font-family: 'Manrope'; src: url('fonts/manrope.woff2') format('woff2'); font-weight: 200 800; font-display: block; }
+
+  :root {
+    --ink: #0b0d10; --ink-2: #15181d; --ink-3: #1f232a; --line-dark: #2a2f37;
+    --paper: #f2f5f8; --line: #e2e7ed; --muted: #69707b; --muted-dark: #9aa1ab;
+    --lime: #c5f25a; --blue: #5b83f2; --coral: #ef8261;
+  }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print { body { background: #fff; } .slide { box-shadow: none; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', system-ui, sans-serif; color: var(--ink); background: #888; }
+  .slide {
+    position: relative; width: 1280px; height: 720px; overflow: hidden;
+    background: var(--paper); padding: 46px 64px 64px; page-break-after: always; display: flex; flex-direction: column;
+  }
+  .slide:last-child { page-break-after: auto; }
+  .dark { background: var(--ink); color: #fff; }
+  h1, h2, h3, .num { font-family: 'Unbounded', 'Arial Black', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.02; }
+  h1 { font-size: 62px; }
+  h2 { font-size: 38px; }
+  h3 { font-size: 19px; }
+  .eyebrow { font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .dark .eyebrow { color: var(--lime); }
+  p, li, td, th { font-size: 17px; line-height: 1.45; }
+  .small { font-size: 15px; }
+  .tiny { font-size: 13px; color: var(--muted); }
+  .dark .tiny { color: var(--muted-dark); }
+  .head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 26px; }
+  .body { flex: 1; display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+  .cols { display: grid; gap: 18px; }
+  .c2 { grid-template-columns: 1fr 1fr; }
+  .c3 { grid-template-columns: repeat(3, 1fr); }
+  .c4 { grid-template-columns: repeat(4, 1fr); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 18px 22px; }
+  .dark .card { background: var(--ink-2); border-color: var(--line-dark); }
+  .card.lime { background: var(--lime); border-color: var(--lime); }
+  .card.blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .card.coral { background: var(--coral); border-color: var(--coral); }
+  .card.ink { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .card h3 { margin-bottom: 8px; }
+  .card p + p { margin-top: 8px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 7px; }
+  .kv { display: grid; grid-template-columns: 200px 1fr; gap: 8px 16px; font-size: 15.5px; }
+  .kv dt { color: var(--muted); }
+  .dark .kv dt { color: var(--muted-dark); }
+  .kv dd { font-weight: 600; word-break: break-word; }
+  .tag { display: inline-block; border-radius: 999px; padding: 5px 13px; font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .tag.lime { background: var(--lime); color: var(--ink); }
+  .tag.out { border: 1px solid var(--lime); color: var(--lime); }
+  .tag.gray { background: #e6e9ee; color: var(--ink); }
+  .tight .card { padding: 14px 18px; }
+  .tight .kv { font-size: 14.5px; gap: 6px 14px; grid-template-columns: 185px 1fr; }
+  .tight th, .tight td { padding: 6px 8px; font-size: 14.5px; }
+  .tight h3 { font-size: 17px; }
+  .tight .body { gap: 14px; }
+  .person img { display: block; width: 100%; border-radius: 26px; }
+  .person b { display: block; font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 700; margin-top: 16px; }
+  .person span { display: block; font-size: 14.5px; color: var(--muted-dark); margin-top: 6px; }
+  .num { font-size: 46px; }
+  .stat { font-size: 54px; font-family: 'Unbounded', sans-serif; font-weight: 800; letter-spacing: -.02em; }
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .step { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; position: relative; }
+  .step .n { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .step b { display: block; margin: 6px 0 4px; font-size: 16px; }
+  .step span { font-size: 13.5px; color: var(--muted); }
+  .shot { border-radius: 22px; border: 1px solid var(--line-dark); overflow: hidden; background: #000; }
+  .shot img { display: block; width: 100%; }
+  .foot { position: absolute; left: 64px; right: 64px; bottom: 26px; display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+  .dark .foot { color: var(--muted-dark); }
+  .orb { position: absolute; border-radius: 50%; background: var(--blue); }
+  .code { font-family: ui-monospace, Menlo, monospace; font-size: 14px; background: var(--ink); color: var(--lime); border-radius: 14px; padding: 14px 16px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 15.5px; vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+  .dark th, .dark td { border-color: var(--line-dark); }
+  .dark th { color: var(--muted-dark); }
+</style>
+</head>
+<body>
+
+<!-- 1. Титул -->
+<section class="slide dark">
+  <div class="orb" style="width:520px;height:520px;right:-140px;top:-120px"></div>
+  <svg style="position:absolute;right:0;top:0;width:700px;height:520px" aria-hidden="true">
+    <g stroke="#687f35">
+      <line x1="120" y1="0" x2="700" y2="260"/><line x1="120" y1="60" x2="700" y2="320"/>
+      <line x1="120" y1="120" x2="700" y2="380"/><line x1="120" y1="180" x2="700" y2="440"/>
+      <line x1="120" y1="240" x2="700" y2="500"/>
+    </g>
+  </svg>
+  <div style="position:relative">
+    <span class="tag out">Хакатон MAX · Образовательные решения</span>
+    <h1 style="margin-top:28px">Цифровой<br>помощник<br>студента</h1>
+    <p style="margin-top:22px;max-width:620px;color:var(--muted-dark);font-size:20px">
+      Мини-приложение в MAX и платформа для вузов и работодателей: расписание, практики и заявки,
+      диагностика навыков с проверкой человеком, документы и обращения.
+    </p>
+  </div>
+  <div style="position:relative;margin-top:auto;display:flex;gap:40px;align-items:flex-end">
+    <div>
+      <div class="eyebrow">Команда</div>
+      <div style="font-family:'Unbounded';font-size:30px;font-weight:800;margin-top:6px">AI-WEBLAB</div>
+    </div>
+    <div style="color:var(--muted-dark);font-size:16px;line-height:1.6">
+      Кальная Дарья · Земсков Егор · Дунаев Денис
+    </div>
+  </div>
+</section>
+
+<!-- 2. Технический слайд -->
+<section class="slide tight">
+  <div class="head">
+    <div><span class="eyebrow">Служебный слайд</span><h2 style="margin-top:10px">Доступы для проверки</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c2">
+      <div class="card">
+        <h3>Решение в MAX</h3>
+        <dl class="kv">
+          <dt>Бот</dt><dd>@t475_hakaton_max_bot</dd>
+          <dt>Мини-приложение</dt><dd>кнопка «Открыть» в чате с ботом</dd>
+          <dt>Диплинк в раздел</dt><dd>max.ru/t475_hakaton_max_bot?startapp=career</dd>
+          <dt>Веб-доступ без MAX</dt><dd>max-hack.ai-weblab.ru/app/start → «Войти как демо-студент»</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h3>Исходный код</h3>
+        <dl class="kv">
+          <dt>Репозиторий</dt><dd>github.com/Serafimka4/max-hack-student-assistant</dd>
+          <dt>Версия для проверки</dt><dd>ветка main, тег v1.0-submission</dd>
+          <dt>Commit hash</dt><dd>указан в описании заявки и в git tag</dd>
+          <dt>Запуск</dt><dd>docker compose up -d --build</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="cols c2">
+      <div class="card">
+        <h3>Учётные записи стенда</h3>
+        <table>
+          <tr><th>Логин</th><th>Роль</th></tr>
+          <tr><td>coordinator@demo.test</td><td>Координатор вуза: практики, заявки, обращения</td></tr>
+          <tr><td>hr@demo.test</td><td>Работодатель: тесты и кандидаты</td></tr>
+          <tr><td>reviewer@demo.test</td><td>Проверяющий: практические задания</td></tr>
+          <tr><td>editor@demo.test</td><td>Редактор: шаблоны и частые вопросы</td></tr>
+        </table>
+        <p class="tiny" style="margin-top:10px">Пароль всех учётных записей — <b>password</b>. Админ-панель: max-hack.ai-weblab.ru/admin</p>
+      </div>
+      <div class="card">
+        <h3>API и документация</h3>
+        <dl class="kv">
+          <dt>OpenAPI 3.1</dt><dd>max-hack.ai-weblab.ru/docs/api</dd>
+          <dt>Спецификация</dt><dd>/docs/api.json</dd>
+          <dt>Проверки и роли</dt><dd>DATA-API.yaml в репозитории</dd>
+          <dt>Health-check</dt><dd>/up → 200</dd>
+        </dl>
+        <p class="tiny" style="margin-top:10px">Все данные на стенде демонстрационные и помечены в интерфейсе.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 3. Проблема -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Проблема</span><h2 style="margin-top:10px">Практику ищут вслепую,<br>а вуз узнаёт о проблемах последним</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c3">
+      <div class="card">
+        <h3>Студент</h3>
+        <p>Предложения практик рассыпаны по чатам и объявлениям. Непонятно, каким требованиям он соответствует и что происходит с поданной заявкой.</p>
+      </div>
+      <div class="card">
+        <h3>Координатор</h3>
+        <p>Узнаёт о студенте без места и о проблемах на практике в последний момент. Заявки и договорённости живут в переписке и таблицах.</p>
+      </div>
+      <div class="card">
+        <h3>Работодатель</h3>
+        <p>Получает отклики без подтверждённых навыков: резюме студента без опыта мало что говорит, отбор идёт вручную.</p>
+      </div>
+    </div>
+    <div class="card ink">
+      <h3 style="color:var(--lime)">Что за этим стоит</h3>
+      <p>Повседневные сервисы — расписание, справки, шаблоны — тоже разбросаны, поэтому студент снова идёт в деканат, а сотрудники отвечают на одни и те же вопросы.
+      Это гипотеза, которую мы проверяем интервью и пилотом, а не выдаём за факт.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 4. Решение -->
+<section class="slide dark">
+  <div class="head">
+    <div><span class="eyebrow">Решение</span><h2 style="margin-top:10px">Один путь: от навыков —<br>к месту практики и обратной связи</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c4">
+      <div class="card"><div class="num" style="color:var(--lime)">01</div><h3 style="margin-top:10px">Мини-приложение</h3><p class="small" style="color:var(--muted-dark)">Расписание, практики и заявки, диагностика навыков, документы, обращения — внутри MAX, без отдельного логина.</p></div>
+      <div class="card"><div class="num" style="color:var(--lime)">02</div><h3 style="margin-top:10px">Бот</h3><p class="small" style="color:var(--muted-dark)">Вход, уведомления о решениях и ответах, диплинки прямо в нужный экран.</p></div>
+      <div class="card"><div class="num" style="color:var(--lime)">03</div><h3 style="margin-top:10px">Кабинеты</h3><p class="small" style="color:var(--muted-dark)">Вуз ведёт практики, заявки и обращения. Работодатель отбирает кандидатов. Специалист проверяет практические задания.</p></div>
+      <div class="card"><div class="num" style="color:var(--lime)">04</div><h3 style="margin-top:10px">API</h3><p class="small" style="color:var(--muted-dark)">Тот же слой логики открыт наружу: другой вуз подключается данными и настройками.</p></div>
+    </div>
+    <div class="card" style="background:var(--lime);border-color:var(--lime);color:var(--ink)">
+      <h3>Главное отличие</h3>
+      <p>Мы не обещаем «ИИ-оценку кандидата». Навыки подтверждаются проверяемыми заданиями, практическую часть оценивает человек по рубрике,
+      а решение принимают люди: координатор и работодатель. Всё, что не проверено, так и называется — «не оценено».</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 5. Сценарий -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Пользовательский сценарий</span><h2 style="margin-top:10px">Сквозной путь, который работает на стенде</h2></div>
+  </div>
+  <div class="body">
+    <div class="flow">
+      <div class="step"><span class="n">01</span><b>Вход из MAX</b><span>Подпись данных запуска проверяется на сервере, пароль не нужен</span></div>
+      <div class="step"><span class="n">02</span><b>Диагностика</b><span>Вопросы с автосохранением, затем практическое задание</span></div>
+      <div class="step"><span class="n">03</span><b>Проверка человеком</b><span>Специалист оценивает решение по рубрике, уровни пересчитываются</span></div>
+      <div class="step"><span class="n">04</span><b>Выбор практики</b><span>Видно, какие требования подтверждены, какие нет</span></div>
+    </div>
+    <div class="flow">
+      <div class="step"><span class="n">05</span><b>Заявка</b><span>Студент решает, показывать ли результаты работодателю</span></div>
+      <div class="step"><span class="n">06</span><b>Решение вуза</b><span>Координатор ведёт статусы, отказ требует причины</span></div>
+      <div class="step"><span class="n">07</span><b>Отбор кандидата</b><span>Работодатель фильтрует по навыкам и отмечает интерес</span></div>
+      <div class="step"><span class="n">08</span><b>Обращение</b><span>Проблема с контекстом → решение → подтверждение студентом</span></div>
+    </div>
+    <div class="card ink">
+      <p>На каждом шаге студент получает уведомление от бота, а вуз — событие в своей панели. Путь замкнут: от «не знаю, что умею» до «место подтверждено и проблема решена».</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 6. Интерфейс -->
+<section class="slide dark">
+  <div class="head">
+    <div><span class="eyebrow">Мини-приложение</span><h2 style="margin-top:10px">Экраны студента</h2></div>
+    <span class="tiny">Скриншоты стенда, демо-данные</span>
+  </div>
+  <div class="body">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-items:start">
+      <div><div class="shot"><img src="img/home.jpg" alt="Главная"></div><p class="tiny" style="margin-top:8px">Главная: текущая пара, заявка, сроки</p></div>
+      <div><div class="shot"><img src="img/schedule.jpg" alt="Расписание"></div><p class="tiny" style="margin-top:8px">Расписание: числитель, источник данных</p></div>
+      <div><div class="shot"><img src="img/career.jpg" alt="Практики"></div><p class="tiny" style="margin-top:8px">Практики: совпадение по навыкам</p></div>
+      <div><div class="shot"><img src="img/skills.jpg" alt="Навыки"></div><p class="tiny" style="margin-top:8px">Навыки: уровни и грейд</p></div>
+      <div><div class="shot"><img src="img/help.jpg" alt="Помощь"></div><p class="tiny" style="margin-top:8px">Помощь: обращения, FAQ, шаблоны</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>max-hack.ai-weblab.ru/app/start</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 7. Польза по ролям -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Польза</span><h2 style="margin-top:10px">Что получает каждая роль</h2></div>
+  </div>
+  <div class="body">
+    <table>
+      <tr><th style="width:190px">Роль</th><th>Что делает в системе</th><th style="width:330px">Результат</th></tr>
+      <tr><td><b>Студент</b></td><td>Смотрит расписание, проходит диагностику, подаёт заявку, отправляет обращение</td><td>Понимает свои навыки и статус заявки, решает проблемы без похода в деканат</td></tr>
+      <tr><td><b>Координатор практики</b></td><td>Ведёт каталог практик, решает по заявкам, обрабатывает обращения</td><td>Видит, кто без места и что «зависло», решения фиксируются с историей и причиной</td></tr>
+      <tr><td><b>Работодатель</b></td><td>Смотрит отклики, фильтрует по навыкам и уровню, отмечает интерес</td><td>Отбирает кандидатов по подтверждённым навыкам, а не по самооценке в резюме</td></tr>
+      <tr><td><b>Предметный специалист</b></td><td>Проверяет практические задания по рубрике</td><td>Оценка обоснована критериями, история проверок сохраняется</td></tr>
+      <tr><td><b>Редактор / учебный отдел</b></td><td>Ведёт шаблоны документов, частые вопросы, тесты</td><td>Меньше повторных обращений; видно, какие ответы не помогают</td></tr>
+      <tr><td><b>Руководитель программы</b></td><td>Смотрит состояние заявок и обращений в кабинете вуза</td><td>Решения принимаются по данным системы, а не по памяти сотрудников</td></tr>
+    </table>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 8. Диагностика -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Ключевая механика</span><h2 style="margin-top:10px">Диагностика навыков, которой можно верить</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c2">
+      <div class="card">
+        <h3>Как считается</h3>
+        <ul>
+          <li>Вопрос засчитывается только при полном совпадении ответа — частичных баллов нет.</li>
+          <li>Балл по навыку — полученные баллы к максимуму по вопросам этого навыка.</li>
+          <li>Меньше минимума вопросов по навыку — «недостаточно данных», а не низкая оценка.</li>
+          <li>Пороги и минимумы хранятся в версии теста и согласуются до отбора.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Почему это честно</h3>
+        <ul>
+          <li>Прикладной и уверенный уровни и грейд «Junior» — только после проверки практики человеком.</li>
+          <li>Практика повышает уровень лишь там, где базовый подтверждён вопросами.</li>
+          <li>Прохождение без наблюдателя отмечено как предварительный результат.</li>
+          <li>Опубликованная версия теста неизменяема: правка создаёт новую версию.</li>
+          <li>Студент может один раз запросить пересмотр оценки.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cols c3">
+      <div class="card lime"><div class="stat">8</div><p class="small">вопросов и практическое задание в демо-тесте</p></div>
+      <div class="card blue"><div class="stat">5</div><p class="small">критериев рубрики с привязкой к навыкам</p></div>
+      <div class="card coral"><div class="stat">0</div><p class="small">правильных ответов уходит в браузер — ключи остаются на сервере</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 9. Кабинеты -->
+<section class="slide dark">
+  <div class="head">
+    <div><span class="eyebrow">Кабинеты организаций</span><h2 style="margin-top:10px">Вуз, работодатель, проверяющий</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c3">
+      <div class="card">
+        <h3 style="color:var(--lime)">Вуз</h3>
+        <ul class="small" style="color:var(--muted-dark)">
+          <li>Каталог практик с требованиями к навыкам</li>
+          <li>Заявки: рассмотрение, решение, история, причина отказа</li>
+          <li>Обращения: в работу, решение, повторное открытие</li>
+          <li>Шаблоны документов с версиями файлов</li>
+          <li>Частые вопросы и статистика «помогло / не помогло»</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--lime)">Работодатель</h3>
+        <ul class="small" style="color:var(--muted-dark)">
+          <li>Отклики только на свои предложения</li>
+          <li>Фильтры по навыку, уровню и наличию проверенной практики</li>
+          <li>Карточка: что подтверждено, что ниже требуемого, что не оценено</li>
+          <li>Отметка «Заинтересован» — следующий шаг делает координатор</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--lime)">Проверяющий</h3>
+        <ul class="small" style="color:var(--muted-dark)">
+          <li>Очередь решений с счётчиком непроверенных</li>
+          <li>Баллы по критериям рубрики и комментарий студенту</li>
+          <li>Имя студента скрыто — только номер попытки</li>
+          <li>Своё решение проверять нельзя, история сохраняется</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <p class="small" style="color:var(--muted-dark)">Доступ определяется типом организации и ролью участника: администратор, координатор, редактор, проверяющий.
+      Работодатель видит результаты только тех студентов, которые разрешили их показать при подаче заявки.</p>
+    </div>
+  </div>
+  <div class="foot"><span>max-hack.ai-weblab.ru/admin</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 10. Интеграция с MAX -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Платформа MAX</span><h2 style="margin-top:10px">Что использовано и зачем</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c2">
+      <div class="card">
+        <h3>Мини-приложение</h3>
+        <p class="small">MAX Bridge передаёт данные запуска, сервер проверяет подпись токеном бота по алгоритму из документации и создаёт сессию. Данные старше часа отклоняются.</p>
+        <p class="small">Кнопка «Назад» в шапке MAX, скачивание файлов через <b>WebApp.downloadFile</b> по временной подписанной ссылке.</p>
+      </div>
+      <div class="card">
+        <h3>Бот</h3>
+        <p class="small">Вебхук с проверкой заголовка <b>X-Max-Bot-Api-Secret</b>, ответ сразу, обработка в очереди. Уведомления: решение по заявке, ответ на обращение, проверка практики.</p>
+        <p class="small">Диплинки <b>?startapp=</b> открывают конкретный экран: расписание, карьеру, помощь, карточку практики, результат диагностики.</p>
+      </div>
+    </div>
+    <div class="code">POST /messages?user_id=…            → уведомление с кнопкой в мини-приложение
+POST /subscriptions                  → подписка на bot_started, message_created
+https://max.ru/&lt;бот&gt;?startapp=offer_7 → открыть карточку практики сразу после входа</div>
+    <div class="card ink">
+      <p class="small">Отдельно решены две вещи, о которые обычно спотыкаются: сертификат Минцифры добавлен в доверенные внутри образа (иначе запросы к API MAX не проходят),
+      а cookie сессии выставлены как SameSite=None; Secure; Partitioned — для веб-версии MAX, где приложение открывается во встроенном окне.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 11. API -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Интеграции</span><h2 style="margin-top:10px">API: вуз подключается данными, а не кодом</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c2">
+      <div class="card">
+        <h3>Что открыто</h3>
+        <ul class="small">
+          <li><b>/v1/auth/max</b> — вход по данным запуска MAX</li>
+          <li><b>/v1/organizations/{вуз}/document-templates</b> — шаблоны и версии файлов</li>
+          <li><b>/v1/organizations/{орг}/assessments</b> — тесты, версии, публикация</li>
+          <li><b>/v1/organizations/{орг}/skills</b> — справочник навыков</li>
+          <li><b>/v1/me</b>, <b>/v1/organizations</b> — профиль и организации</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Как устроено</h3>
+        <ul class="small">
+          <li>Токены Sanctum: для интеграции и для мини-приложения</li>
+          <li>Документация OpenAPI 3.1 собирается из кода, не пишется руками</li>
+          <li>Чужая запись — 404, нехватка прав — 403, нарушение правила — 422 с текстом</li>
+          <li>Лимиты: 120 запросов в минуту, 20 на вход через MAX</li>
+          <li>DATA-API.yaml: 19 проверок и 7 ролей с ожидаемыми ответами</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card ink">
+      <h3 style="color:var(--lime)">Важное решение</h3>
+      <p class="small">Мини-приложение и админ-панель не ходят в собственное API по HTTP: все три интерфейса вызывают один слой действий и прав.
+      Поэтому правила совпадают, а API не отстаёт от интерфейса — каждый сценарий покрыт тестом.</p>
+    </div>
+  </div>
+  <div class="foot"><span>max-hack.ai-weblab.ru/docs/api</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 12. Инженерная часть -->
+<section class="slide dark">
+  <div class="head">
+    <div><span class="eyebrow">Инженерная часть</span><h2 style="margin-top:10px">Git, CI/CD и воспроизводимость</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c4">
+      <div class="card"><div class="stat" style="color:var(--lime)">79</div><p class="small" style="color:var(--muted-dark)">тестов: права, подсчёт баллов, дубли заявок, вебхук, уведомления</p></div>
+      <div class="card"><div class="stat" style="color:var(--lime)">1</div><p class="small" style="color:var(--muted-dark)">команда для запуска: docker compose up -d --build</p></div>
+      <div class="card"><div class="stat" style="color:var(--lime)">~3</div><p class="small" style="color:var(--muted-dark)">минуты сборка образа вместе с фронтендом</p></div>
+      <div class="card"><div class="stat" style="color:var(--lime)">24+</div><p class="small" style="color:var(--muted-dark)">коммита с понятной историей изменений</p></div>
+    </div>
+    <div class="cols c2">
+      <div class="card">
+        <h3 style="color:var(--lime)">Конвейер</h3>
+        <p class="small" style="color:var(--muted-dark)">Push в main → раннер на сервере обновляет код → собирает тестовый образ и прогоняет тесты → пересобирает и перезапускает стек → проверяет, что сайт отвечает.
+        Если тесты падают, развёртывание не выполняется.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--lime)">Эксплуатация</h3>
+        <p class="small" style="color:var(--muted-dark)">Docker Compose: приложение, очередь, планировщик, PostgreSQL. Миграции выполняются при старте, демо-данные — только в пустую базу.
+        Секреты в переменных окружения, в репозитории только примеры. Сертификат Let's Encrypt с автопродлением.</p>
+      </div>
+    </div>
+    <div class="card">
+      <p class="small" style="color:var(--muted-dark)">Документация в репозитории: README, архитектура, руководство по API, развёртывание и обслуживание, сценарий демонстрации, DATA-API.yaml.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 13. Эффект -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Эффект</span><h2 style="margin-top:10px">Что измеряем и как проверяем</h2></div>
+  </div>
+  <div class="body">
+    <table>
+      <tr><th style="width:330px">Показатель</th><th>Как считаем</th><th style="width:230px">Кому нужен</th></tr>
+      <tr><td>Время до подачи подходящей заявки</td><td>Один и тот же сценарий текущим способом и в продукте</td><td>Студент, координатор</td></tr>
+      <tr><td>Доля студентов с местом к контрольной дате</td><td>Подтверждённые места к дате / все, кому нужна практика</td><td>Руководитель программы</td></tr>
+      <tr><td>Доля заявок без ответа в срок</td><td>Заявки, превысившие согласованный срок, к общему числу</td><td>Координатор</td></tr>
+      <tr><td>Время первого ответа на обращение</td><td>От создания до первого содержательного ответа</td><td>Учебный отдел</td></tr>
+      <tr><td>Подтверждение решения студентом</td><td>Закрытые обращения с подтверждением; молчание считаем отдельно</td><td>Вуз</td></tr>
+      <tr><td>Согласованность оценки навыков</td><td>Сравнение предварительного уровня с независимым разбором практики</td><td>Работодатель, преподаватель</td></tr>
+    </table>
+    <div class="card ink">
+      <p class="small">За 2–4 недели пилота проверяются удобство, работоспособность и управляемость процесса. Влияние на трудоустройство и качество практики требует более длительного наблюдения — мы не выдаём его за уже достигнутый результат.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 14. Масштабирование -->
+<section class="slide dark">
+  <div class="head">
+    <div><span class="eyebrow">Масштабирование</span><h2 style="margin-top:10px">Новый вуз — это данные и настройки</h2></div>
+  </div>
+  <div class="body">
+    <div class="flow">
+      <div class="step" style="background:var(--ink-2);border-color:var(--line-dark)"><span class="n" style="color:var(--lime)">Шаг 1</span><b style="color:#fff">Группы факультета</b><span style="color:var(--muted-dark)">Пилот: 30–50 студентов, один координатор</span></div>
+      <div class="step" style="background:var(--ink-2);border-color:var(--line-dark)"><span class="n" style="color:var(--lime)">Шаг 2</span><b style="color:#fff">Несколько факультетов</b><span style="color:var(--muted-dark)">Свои группы, расписание и ответственные</span></div>
+      <div class="step" style="background:var(--ink-2);border-color:var(--line-dark)"><span class="n" style="color:var(--lime)">Шаг 3</span><b style="color:#fff">Второй вуз</b><span style="color:var(--muted-dark)">Отдельная организация в той же системе</span></div>
+      <div class="step" style="background:var(--ink-2);border-color:var(--line-dark)"><span class="n" style="color:var(--lime)">Шаг 4</span><b style="color:#fff">Тираж</b><span style="color:var(--muted-dark)">Подключение через API и админ-панель</span></div>
+    </div>
+    <div class="cols c2">
+      <div class="card">
+        <h3 style="color:var(--lime)">Что уже заложено</h3>
+        <ul class="small" style="color:var(--muted-dark)">
+          <li>Все записи привязаны к организации, доступ проверяется на сервере</li>
+          <li>Кабинет открывается по типу организации: вуз или работодатель</li>
+          <li>Навыки: общий справочник платформы плюс собственные</li>
+          <li>Тесты, рубрики и пороги настраиваются каждой организацией</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--lime)">Что настраивается под вуз</h3>
+        <ul class="small" style="color:var(--muted-dark)">
+          <li>Группы, расписание, источник данных и часовой пояс</li>
+          <li>Партнёры, предложения практик и требования к навыкам</li>
+          <li>Шаблоны документов, частые вопросы, ответственные</li>
+          <li>Правила подтверждения принадлежности к вузу</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 15. Ограничения и дальше -->
+<section class="slide">
+  <div class="head">
+    <div><span class="eyebrow">Честно о границах</span><h2 style="margin-top:10px">Что не сделано и что дальше</h2></div>
+  </div>
+  <div class="body">
+    <div class="cols c2">
+      <div class="card">
+        <h3>Ограничения текущей версии</h3>
+        <ul class="small">
+          <li>Расписание и контент заполняются в админ-панели: автоматического импорта из систем вуза нет</li>
+          <li>Управленческая аналитика не реализована — показатели считаются по сохранённым событиям, но экрана пока нет</li>
+          <li>Работодатель не публикует предложения сам: их заводит вуз</li>
+          <li>Прокторинга нет, результат диагностики предварительный</li>
+          <li>Пилот с реальным вузом не проводился: данные демонстрационные и помечены</li>
+        </ul>
+      </div>
+      <div class="card lime">
+        <h3>Ближайшие шаги</h3>
+        <ul class="small">
+          <li>Аналитика: студенты без места, заявки без ответа, обращения без решения — с периодом и размером выборки</li>
+          <li>Импорт расписания из CSV с проверкой ошибок при загрузке</li>
+          <li>Второе направление диагностики и расширенная рубрика</li>
+          <li>Пилот на одном факультете: интервью, согласование данных и владельцев процессов</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card ink">
+      <p class="small">Мы намеренно не добавляли генеративные функции в основной путь: сценарий работает без LLM, а значит его можно проверить и повторить.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 16. Команда -->
+<section class="slide dark">
+  <div class="head">
+    <div><span class="eyebrow">Кто сделал</span><h2 style="margin-top:10px">Команда AI-WEBLAB</h2></div>
+    <span class="tiny">Мини-приложение, платформа, интеграция с MAX и развёртывание</span>
+  </div>
+  <div class="body">
+    <div class="cols c3" style="gap:28px">
+      <div class="person"><img src="img/team/kalnaya.jpg" alt="Кальная Дарья"><b>Кальная Дарья</b></div>
+      <div class="person"><img src="img/team/zemskov.jpg" alt="Земсков Егор"><b>Земсков Егор</b></div>
+      <div class="person"><img src="img/team/dunaev.jpg" alt="Дунаев Денис"><b>Дунаев Денис</b></div>
+    </div>
+  </div>
+  <div class="foot"><span>Хакатон MAX · Образовательные решения</span><span>AI-WEBLAB</span></div>
+</section>
+
+<!-- 17. Финал -->
+<section class="slide dark">
+  <div class="orb" style="width:420px;height:420px;right:-110px;bottom:-130px"></div>
+  <div class="head"><div><span class="eyebrow">Готово к проверке</span><h2 style="margin-top:10px">Попробуйте прямо сейчас</h2></div></div>
+  <div class="body" style="position:relative;gap:14px">
+    <div class="cols c2">
+      <div class="card" style="padding:16px 20px">
+        <h3 style="color:var(--lime)">В MAX</h3>
+        <p class="small" style="color:var(--muted-dark)">Бот <b style="color:#fff">@t475_hakaton_max_bot</b> → кнопка «Открыть». Вход выполняется автоматически.</p>
+      </div>
+      <div class="card" style="padding:16px 20px">
+        <h3 style="color:var(--lime)">В браузере</h3>
+        <p class="small" style="color:var(--muted-dark)">max-hack.ai-weblab.ru/app/start → «Войти как демо-студент»</p>
+      </div>
+    </div>
+    <div class="card" style="padding:16px 20px">
+      <p class="small" style="color:var(--muted-dark)">Админ-панель: /admin · API: /docs/api · Код: github.com/Serafimka4/max-hack-student-assistant · Демо-учётные записи и commit hash — на втором слайде</p>
+    </div>
+    <div style="margin-top:6px">
+      <div class="eyebrow">Команда</div>
+      <div style="font-family:'Unbounded';font-size:32px;font-weight:800;margin-top:6px">AI-WEBLAB</div>
+      <p style="color:var(--muted-dark);margin-top:6px">Кальная Дарья · Земсков Егор · Дунаев Денис</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

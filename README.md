@@ -7,6 +7,7 @@
 - Работа с API: [docs/API.md](docs/API.md) · проверки и роли: [DATA-API.yaml](DATA-API.yaml)
 - Развёртывание и обслуживание: [docs/DEPLOY.md](docs/DEPLOY.md)
 - Сценарий демонстрации: [docs/DEMO.md](docs/DEMO.md)
+- Презентация решения: [Хакатон MAX - Образовательные решения - AI-WEBLAB.pdf](Хакатон%20MAX%20-%20Образовательные%20решения%20-%20AI-WEBLAB.pdf) (исходник — [docs/presentation](docs/presentation))
 
 ## Стенд
 
