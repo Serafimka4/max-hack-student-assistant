@@ -20,6 +20,7 @@ use App\Enums\TicketCategory;
 use App\Enums\TicketStatus;
 use App\Enums\WeekParity;
 use App\Models\Assessment;
+use App\Models\InternshipOffer;
 use App\Models\Organization;
 use App\Models\Skill;
 use App\Models\Ticket;
@@ -48,6 +49,9 @@ class DemoSeeder extends Seeder
 
         User::create(['name' => 'Редактор вуза', 'email' => 'editor@demo.test', 'password' => 'password'])
             ->organizations()->attach($university, ['role' => MemberRole::Editor]);
+
+        User::create(['name' => 'Координатор практики', 'email' => 'coordinator@demo.test', 'password' => 'password'])
+            ->organizations()->attach($university, ['role' => MemberRole::Coordinator]);
 
         User::create(['name' => 'HR работодателя', 'email' => 'hr@demo.test', 'password' => 'password'])
             ->organizations()->attach($employer, ['role' => MemberRole::Admin]);
@@ -166,6 +170,13 @@ class DemoSeeder extends Seeder
         }
         app(SubmitAttempt::class)($other);
         app(SubmitPractical::class)($other->fresh(), $second, 'https://example.com/demo/vacancies-maria', null);
+
+        // Отклик с разрешёнными результатами: виден в кабинете работодателя.
+        $frontend = InternshipOffer::where('title', 'Frontend-стажёр')->firstOrFail();
+        $application = $frontend->applications()->create([
+            'user_id' => $second->id, 'status' => ApplicationStatus::Submitted, 'share_results' => true,
+        ]);
+        $application->history()->create(['status' => ApplicationStatus::Submitted, 'created_at' => now()->subDays(2)]);
     }
 
     /**
