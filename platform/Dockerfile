@@ -10,7 +10,7 @@ COPY resources ./resources
 COPY app/Livewire ./app/Livewire
 RUN npm run build
 
-FROM dunglas/frankenphp:1-php8.5-bookworm
+FROM dunglas/frankenphp:1-php8.5-bookworm AS app
 
 RUN install-php-extensions pdo_pgsql intl zip bcmath gd opcache pcntl @composer
 
@@ -41,3 +41,13 @@ RUN chmod +x /usr/local/bin/entrypoint
 EXPOSE 80
 ENTRYPOINT ["entrypoint"]
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
+
+# Стадия для CI: те же зависимости плюс dev-пакеты и тесты.
+FROM app AS test
+# Тестам нужен файл .env: настройки всё равно перекрываются phpunit.xml.
+RUN cp .env.example .env \
+    && composer install --no-interaction --prefer-dist \
+    && php artisan package:discover --ansi
+# Без entrypoint: он кеширует конфигурацию и перебивает настройки phpunit.
+ENTRYPOINT []
+CMD ["php", "artisan", "test"]
