@@ -1,0 +1,220 @@
+# Проверки собственного API: роли, запросы и ожидаемые ответы.
+# Спецификация: https://max-hack.ai-weblab.ru/docs/api.json (OpenAPI 3.1)
+# Руководство: docs/API.md
+
+api:
+  base_url: https://max-hack.ai-weblab.ru/api
+  version: v1
+  openapi: https://max-hack.ai-weblab.ru/docs/api.json
+  auth:
+    type: bearer
+    header: "Authorization: Bearer <token>"
+    issue:
+      integration: "docker compose exec app php artisan api:token <email> --name=integration --days=90"
+      miniapp: "POST /v1/auth/max с полем init_data из window.WebApp.initData"
+  rate_limits:
+    authenticated: 120 запросов в минуту на пользователя
+    auth_max: 20 запросов в минуту на IP
+
+roles:
+  - id: platform_admin
+    account: admin@demo.test
+    описание: Администратор платформы, видит все организации
+  - id: editor
+    account: editor@demo.test
+    организация: demo-university
+    описание: Редактор вуза — шаблоны документов и частые вопросы
+  - id: coordinator
+    account: coordinator@demo.test
+    организация: demo-university
+    описание: Координатор — практики, заявки, обращения
+  - id: employer_admin
+    account: hr@demo.test
+    организация: demo-employer
+    описание: Администратор работодателя — тесты навыков и кандидаты
+  - id: reviewer
+    account: reviewer@demo.test
+    организация: demo-employer
+    описание: Проверяющий — практические задания
+  - id: student
+    account: student@demo.test
+    описание: Студент демо-вуза; в API входит через /v1/auth/max
+  - id: outsider
+    описание: Пользователь с токеном, но без членства в организации
+
+# Все учётные записи демонстрационные, пароль password, данные вымышлены.
+
+checks:
+  - id: auth-max-invalid
+    описание: Данные запуска MAX с неверной подписью отклоняются
+    role: anonymous
+    request: POST /v1/auth/max
+    body: {init_data: "auth_date=1&user=%7B%22id%22%3A1%7D&hash=deadbeef"}
+    expect:
+      status: 401
+      body_contains: "не прошли проверку"
+
+  - id: auth-max-missing-field
+    описание: Без init_data запрос не проходит валидацию
+    role: anonymous
+    request: POST /v1/auth/max
+    body: {}
+    expect:
+      status: 422
+      json_has: errors.init_data
+
+  - id: me
+    описание: Профиль и организации пользователя
+    role: editor
+    request: GET /v1/me
+    expect:
+      status: 200
+      json:
+        organizations[0].slug: demo-university
+        organizations[0].role: editor
+
+  - id: templates-public-list
+    описание: Не участник организации видит только опубликованные шаблоны
+    role: outsider
+    request: GET /v1/organizations/demo-university/document-templates
+    expect:
+      status: 200
+      все_элементы: is_published = true
+
+  - id: templates-create-denied
+    описание: Создание шаблона без прав редактора запрещено
+    role: outsider
+    request: POST /v1/organizations/demo-university/document-templates
+    body: {title: "Проверка"}
+    expect:
+      status: 403
+
+  - id: templates-create
+    описание: Редактор создаёт шаблон
+    role: editor
+    request: POST /v1/organizations/demo-university/document-templates
+    body: {title: "Заявление на перевод", category: "Учёба", is_published: true}
+    expect:
+      status: 201
+      json: {data.title: "Заявление на перевод"}
+
+  - id: templates-version-upload
+    описание: Загрузка версии файла, номер версии растёт, выдаётся временная ссылка
+    role: editor
+    request: POST /v1/organizations/demo-university/document-templates/{id}/versions
+    body: multipart, поле file — PDF или DOC(X) до 20 МБ
+    expect:
+      status: 201
+      json: {data.version: 1}
+      json_has: data.download_url
+
+  - id: templates-version-reject-type
+    описание: Недопустимый тип файла отклоняется
+    role: editor
+    request: POST /v1/organizations/demo-university/document-templates/{id}/versions
+    body: multipart, поле file — script.php
+    expect:
+      status: 422
+      json_has: errors.file
+
+  - id: templates-cross-organization
+    описание: Шаблон другой организации недоступен по адресу этой организации
+    role: editor
+    request: GET /v1/organizations/demo-university/document-templates/{id_чужого}
+    expect:
+      status: 404
+
+  - id: assessments-list-denied
+    описание: Тесты организации видит только её участник
+    role: outsider
+    request: GET /v1/organizations/demo-employer/assessments
+    expect:
+      status: 403
+
+  - id: assessment-version-create
+    описание: Создание черновой версии с вопросами и правилами оценки
+    role: employer_admin
+    request: POST /v1/organizations/demo-employer/assessments/{id}/versions
+    body:
+      basic_threshold: 60
+      questions: [{skill_id: 1, type: single, prompt: "…", options: [{key: A, text: "…"}, {key: B, text: "…"}], correct_keys: [A]}]
+    expect:
+      status: 201
+      json: {data.is_published: false, data.basic_threshold: 60}
+
+  - id: assessment-version-single-answer-rule
+    описание: Для типа «один ответ» нужен ровно один правильный вариант
+    role: employer_admin
+    request: POST /v1/organizations/demo-employer/assessments/{id}/versions
+    body: {questions: [{type: single, correct_keys: [A, B], ...}]}
+    expect:
+      status: 422
+      body_contains: "ровно один правильный вариант"
+
+  - id: assessment-version-foreign-skill
+    описание: Навык чужой организации не принимается
+    role: employer_admin
+    request: POST /v1/organizations/demo-employer/assessments/{id}/versions
+    body: {questions: [{skill_id: "<навык другой организации>", ...}]}
+    expect:
+      status: 422
+      json_has: errors.questions.0.skill_id
+
+  - id: assessment-version-publish-empty
+    описание: Версию без вопросов опубликовать нельзя
+    role: employer_admin
+    request: POST /v1/organizations/demo-employer/assessments/{id}/versions/{version}/publish
+    expect:
+      status: 422
+      body_contains: "без вопросов"
+
+  - id: assessment-version-immutable
+    описание: Опубликованная версия не изменяется
+    role: employer_admin
+    request: PUT /v1/organizations/demo-employer/assessments/{id}/versions/{опубликованная}
+    expect:
+      status: 422
+      body_contains: "Опубликованная версия теста не изменяется"
+
+  - id: assessment-answer-keys-hidden
+    описание: Правильные ответы отдаются только редакторам организации
+    role: reviewer
+    request: GET /v1/organizations/demo-employer/assessments/{id}/versions/{version}
+    expect:
+      status: 200
+      json_missing: data.questions[].correct_keys
+
+  - id: thresholds-consistency
+    описание: Порог «Уверенного» не ниже порога «Прикладного»
+    role: employer_admin
+    request: PUT /v1/organizations/demo-employer/assessments/{id}/versions/{черновик}
+    body: {applied_threshold: 90, confident_threshold: 80}
+    expect:
+      status: 422
+      json_has: errors.confident_threshold
+
+  - id: signed-download
+    описание: Файл шаблона отдаётся только по подписанной непросроченной ссылке
+    role: anonymous
+    request: GET /files/templates/{version_id} без подписи
+    expect:
+      status: 403
+      примечание: для несуществующей версии ответ 404
+
+  - id: health
+    описание: Проверка работоспособности
+    role: anonymous
+    request: GET /up
+    expect:
+      status: 200
+
+automated_tests:
+  команда: docker compose exec app php artisan test
+  количество: 79
+  покрытие:
+    - проверка подписи данных запуска MAX и срок их действия
+    - права ролей в API, мини-приложении и админ-панели
+    - подсчёт баллов, уровней и грейда, неизменяемость опубликованной версии
+    - отсутствие дублей заявок и допустимые переходы статусов
+    - контекст и конфиденциальность обращений
+    - вебхук бота и отправка уведомлений
