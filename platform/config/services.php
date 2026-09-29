@@ -22,6 +22,11 @@ return [
         'bot_token' => env('MAX_BOT_TOKEN', ''),
         'api_url' => env('MAX_API_URL', 'https://platform-api2.max.ru'),
         'init_data_ttl' => (int) env('MAX_INIT_DATA_TTL', 3600),
+        // Имя бота для диплинков вида https://max.ru/<bot>?startapp=offer_42
+        'bot_name' => env('MAX_BOT_NAME', ''),
+        // Секрет вебхука: приходит в заголовке X-Max-Bot-Api-Secret.
+        'webhook_secret' => env('MAX_WEBHOOK_SECRET', ''),
+        'notifications' => (bool) env('MAX_NOTIFICATIONS', true),
     ],
 
     'resend' => [
