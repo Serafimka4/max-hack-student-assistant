@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['employer_id', 'company_name', 'title', 'direction', 'format', 'starts_on', 'ends_on', 'apply_until', 'places', 'tasks', 'contact', 'is_published'])]
+#[Fillable(['organization_id', 'employer_id', 'company_name', 'title', 'direction', 'format', 'starts_on', 'ends_on', 'apply_until', 'places', 'tasks', 'contact', 'is_published'])]
 class InternshipOffer extends Model
 {
     protected function casts(): array
