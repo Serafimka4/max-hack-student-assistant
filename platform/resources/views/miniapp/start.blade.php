@@ -35,7 +35,7 @@
 
         @if ($demoLogin)
             <button id="demo-login" type="button" class="btn-lime mt-4 hidden w-full">Войти как демо-студент</button>
-            <p id="demo-hint" class="mt-2 hidden text-2xs text-muted-dark">Локальная проверка без MAX. В рабочей среде кнопка отключена.</p>
+            <p id="demo-hint" class="mt-2 hidden text-2xs text-muted-dark">Демонстрационный доступ без MAX: открывается тестовая учётная запись студента с демо-данными.</p>
         @endif
     </div>
 </main>

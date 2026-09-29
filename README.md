@@ -41,6 +41,20 @@ docker compose up -d --build
 | `reviewer@demo.test` | Проверяющий «Волга Софт»: проверка практических заданий |
 | `student@demo.test` | Студент демо-вуза (без пароля; кнопка «Войти как демо-студент» на `/app/start`) |
 
+## Развёрнутый стенд
+
+| Адрес | Что это |
+|---|---|
+| https://max-hack.ai-weblab.ru/app/start | Мини-приложение (кнопка демо-входа без MAX) |
+| https://max-hack.ai-weblab.ru/admin | Админ-панель |
+| https://max-hack.ai-weblab.ru/docs/api | Документация API |
+
+Сервер 62.113.105.182: код в `/opt/max-hack`, стек в Docker слушает `127.0.0.1:8090`, наружу проксирует nginx (`/etc/nginx/sites-enabled/max-hack.conf`), сертификат Let's Encrypt. Рабочие настройки — в `/opt/max-hack/.env`, в репозиторий они не попадают. Развёртывание по push в `main` выполняет Gitea Actions (`.gitea/workflows/deploy.yml`) через раннер на этом же сервере; ручной вариант:
+
+```bash
+ssh root@62.113.105.182 'cd /opt/max-hack && git pull && docker compose up -d --build'
+```
+
 ## Мини-приложение
 
 - URL для настроек бота в MAX: `https://<домен>/app/start`. Страница получает `window.WebApp.initData`, сервер проверяет подпись токеном бота (`MAX_BOT_TOKEN`) и создаёт сессию.
