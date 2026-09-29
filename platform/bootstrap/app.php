@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Вебхук MAX приходит без сессии и CSRF-токена.
+        $middleware->validateCsrfTokens(except: ['max/webhook']);
+
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('app', 'app/*')
             ? route('miniapp.start')
             : route('filament.admin.auth.login'));

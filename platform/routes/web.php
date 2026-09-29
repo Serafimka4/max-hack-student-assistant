@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Max\WebhookController;
 use App\Http\Controllers\MiniApp\AuthController;
 use App\Http\Controllers\MiniApp\StartController;
 use App\Http\Controllers\Web\TemplateDownloadController;
@@ -19,6 +20,9 @@ Route::redirect('/', '/app');
 Route::get('files/templates/{version}', TemplateDownloadController::class)
     ->middleware('signed')
     ->name('templates.download');
+
+// События бота MAX (проверка секрета — в контроллере)
+Route::post('max/webhook', WebhookController::class)->name('max.webhook');
 
 // Мини-приложение MAX
 Route::prefix('app')->name('miniapp.')->group(function () {
