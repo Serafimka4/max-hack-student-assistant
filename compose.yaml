@@ -3,6 +3,8 @@ name: max-hack
 x-app: &app
   build:
     context: ./platform
+    # Последняя стадия Dockerfile — тестовая, поэтому целевую указываем явно.
+    target: app
   image: max-hack-platform:local
   env_file:
     - path: .env
