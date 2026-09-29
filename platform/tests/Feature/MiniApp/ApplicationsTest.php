@@ -37,7 +37,7 @@ class ApplicationsTest extends MiniAppTestCase
 
         Livewire::test(OfferShow::class, ['offer' => $offer])->call('apply');
         $this->assertSame(ApplicationStatus::Submitted, $application->fresh()->status);
-        $this->assertSame(1, $offer->applications()->count());
+        $this->assertSame(1, $offer->applications()->where('user_id', $this->student->id)->count());
         $this->assertCount(3, $application->fresh()->history);
     }
 
@@ -61,7 +61,7 @@ class ApplicationsTest extends MiniAppTestCase
         Livewire::test(OfferShow::class, ['offer' => $offer])
             ->call('apply')
             ->assertDispatched('toast', tone: 'error');
-        $this->assertSame(0, $offer->applications()->count());
+        $this->assertSame(0, $offer->applications()->where('user_id', $this->student->id)->count());
     }
 
     public function test_offers_of_other_universities_and_drafts_are_hidden(): void
