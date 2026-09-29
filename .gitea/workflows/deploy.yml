@@ -1,0 +1,39 @@
+name: Проверка и развёртывание
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: max-hack
+    steps:
+      - name: Обновить код
+        run: |
+          cd /opt/max-hack
+          git fetch --prune origin
+          git reset --hard origin/${{ github.ref_name }}
+          git log -1 --format='%h %s'
+
+      - name: Тесты
+        run: |
+          cd /opt/max-hack
+          docker build --target test -t max-hack-platform:test platform
+          docker run --rm max-hack-platform:test php artisan test
+
+      - name: Развернуть
+        run: |
+          cd /opt/max-hack
+          docker compose up -d --build
+          docker compose ps
+
+      - name: Проверить доступность
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS https://max-hack.ai-weblab.ru/up >/dev/null && echo "приложение отвечает" && exit 0
+            sleep 4
+          done
+          echo "приложение не ответило" >&2
+          cd /opt/max-hack && docker compose logs --tail=50 app >&2
+          exit 1
