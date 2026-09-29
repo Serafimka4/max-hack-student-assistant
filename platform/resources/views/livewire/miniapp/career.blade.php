@@ -151,12 +151,17 @@
                         <div class="my-3 h-px bg-line"></div>
                         <div class="flex flex-col gap-1.5">
                             @foreach ($application->history->reverse()->values() as $i => $change)
-                                <div class="flex items-center justify-between text-[13px]">
-                                    <span class="inline-flex items-center gap-2">
-                                        <span @class(['size-2 rounded-full', 'bg-ink' => $i === 0, 'bg-line' => $i > 0])></span>
-                                        {{ $change->status->getLabel() }}
-                                    </span>
-                                    <span class="text-muted">{{ $change->created_at->timezone(config('miniapp.timezone'))->translatedFormat('j M') }}</span>
+                                <div wire:key="change-{{ $change->id }}">
+                                    <div class="flex items-center justify-between text-[13px]">
+                                        <span class="inline-flex items-center gap-2">
+                                            <span @class(['size-2 rounded-full', 'bg-ink' => $i === 0, 'bg-line' => $i > 0])></span>
+                                            {{ $change->status->getLabel() }}
+                                        </span>
+                                        <span class="text-muted">{{ $change->created_at->timezone(config('miniapp.timezone'))->translatedFormat('j M') }}</span>
+                                    </div>
+                                    @if ($change->comment)
+                                        <p class="ml-4 mt-1 rounded-xl bg-paper px-2.5 py-2 text-[13px]">{{ $change->comment }}</p>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
