@@ -5,6 +5,7 @@ namespace App\Http\Controllers\MiniApp;
 use App\Actions\Auth\AuthenticateMaxUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\MaxAuthRequest;
+use App\Models\AssessmentAttempt;
 use App\Models\InternshipOffer;
 use App\Models\User;
 use App\Support\Max\InvalidInitDataException;
@@ -47,13 +48,28 @@ class AuthController extends Controller
         return response()->json(['redirect' => route('miniapp.start')]);
     }
 
-    /** Диплинк https://max.ru/<bot>?startapp=offer_42 открывает карточку предложения. */
+    /**
+     * Диплинк https://max.ru/<bot>?startapp=<параметр> открывает нужный экран:
+     * schedule, career, help, offer_<id>, attempt_<id>.
+     */
     private function redirectFor(?string $startParam): string
     {
-        if ($startParam && preg_match('/^offer_(\d+)$/', $startParam, $m) && InternshipOffer::whereKey($m[1])->exists()) {
+        $startParam = (string) $startParam;
+
+        if (preg_match('/^offer_(\d+)$/', $startParam, $m) && InternshipOffer::whereKey($m[1])->exists()) {
             return route('miniapp.offers.show', $m[1]);
         }
 
-        return route('miniapp.home');
+        if (preg_match('/^attempt_(\d+)$/', $startParam, $m)
+            && AssessmentAttempt::whereKey($m[1])->whereBelongsTo(Auth::user())->whereNotNull('submitted_at')->exists()) {
+            return route('miniapp.attempts.result', $m[1]);
+        }
+
+        return match ($startParam) {
+            'schedule' => route('miniapp.schedule'),
+            'career' => route('miniapp.career'),
+            'help' => route('miniapp.help'),
+            default => route('miniapp.home'),
+        };
     }
 }
