@@ -74,6 +74,12 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->hasMany(Ticket::class);
     }
 
+    /** Канал MAX: сообщения уходят на идентификатор пользователя в мессенджере. */
+    public function routeNotificationForMax(): ?int
+    {
+        return $this->max_user_id;
+    }
+
     public function roleIn(Organization $organization): ?MemberRole
     {
         if ($this->is_platform_admin) {
