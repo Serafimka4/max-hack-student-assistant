@@ -6,6 +6,7 @@ use App\Enums\TicketStatus;
 use App\Exceptions\DomainRuleException;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\TicketResolved;
 
 /** Работа сотрудника с обращением: взять в работу и зафиксировать решение. */
 class HandleTicket
@@ -39,6 +40,8 @@ class HandleTicket
             // Подтверждение студента запрашивается заново после каждого решения.
             'confirmed_at' => null,
         ])->save();
+
+        $ticket->user->notify(new TicketResolved($ticket));
 
         return $ticket;
     }

@@ -7,6 +7,7 @@ use App\Exceptions\DomainRuleException;
 use App\Models\ApplicationStatusChange;
 use App\Models\InternshipApplication;
 use App\Models\User;
+use App\Notifications\ApplicationDecided;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -32,7 +33,7 @@ class ChangeApplicationStatus
             throw new DomainRuleException('Укажите причину отказа — она будет видна студенту.');
         }
 
-        return DB::transaction(function () use ($application, $staff, $status, $comment) {
+        $change = DB::transaction(function () use ($application, $staff, $status, $comment) {
             $application->update(['status' => $status]);
 
             return $application->history()->create([
@@ -42,5 +43,9 @@ class ChangeApplicationStatus
                 'created_at' => now(),
             ]);
         });
+
+        $application->user->notify(new ApplicationDecided($application, $status, $change->comment));
+
+        return $change;
     }
 }

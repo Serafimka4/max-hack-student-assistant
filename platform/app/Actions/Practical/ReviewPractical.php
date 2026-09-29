@@ -9,6 +9,7 @@ use App\Exceptions\DomainRuleException;
 use App\Models\PracticalReview;
 use App\Models\PracticalSubmission;
 use App\Models\User;
+use App\Notifications\PracticalReviewed;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -43,7 +44,7 @@ class ReviewPractical
             }
         }
 
-        return DB::transaction(function () use ($submission, $reviewer, $scores, $comment, $attempt, $version, $rubric) {
+        $review = DB::transaction(function () use ($submission, $reviewer, $scores, $comment, $attempt, $version, $rubric) {
             $bySkill = [];
             foreach ($rubric as $i => $criterion) {
                 $skillId = (int) $criterion['skill_id'];
@@ -84,5 +85,10 @@ class ReviewPractical
 
             return $review;
         });
+
+        // Уведомление после фиксации изменений, чтобы очередь не увидела незавершённую транзакцию.
+        $attempt->user->notify(new PracticalReviewed($attempt));
+
+        return $review;
     }
 }
